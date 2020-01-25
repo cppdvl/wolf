@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(Glitter)
-
+message(STATUS " ._-= Project Name : ${PROJECT_NAME} =-_.")
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
@@ -21,7 +21,7 @@ add_subdirectory(Glitter/Vendor/bullet)
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17")
     if(NOT WIN32)
         set(GLAD_LIBRARIES dl)
     endif()
@@ -58,7 +58,7 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
-target_link_libraries(${PROJECT_NAME} assimp glfw
+target_link_libraries(${PROJECT_NAME} PRIVATE assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)
 set_target_properties(${PROJECT_NAME} PROPERTIES
