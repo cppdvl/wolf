@@ -26,29 +26,22 @@ else()
         set(GLAD_LIBRARIES dl)
     endif()
 endif()
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
-configure_file(Glitter/Headers/Utils/filesystem.hpp.in Glitter/Headers/Utils/filesystem.hpp)
-include_directories(Glitter/Headers/
+configure_file(Glitter/Headers/Utils/filesystem.hpp.in ${CMAKE_SOURCE_DIR}/Glitter/Headers/Utils/filesystem.hpp)
 
-                    Glitter/Vendor/assimp/include/
-                    Glitter/Vendor/bullet/src/
-                    Glitter/Vendor/glad/include/
-                    Glitter/Vendor/glfw/include/
-                    Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/)
-
-file(GLOB VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
-file(GLOB PROJECT_HEADERS Glitter/Headers/*.hpp)
-file(GLOB PROJECT_SOURCES Glitter/Sources/*.cpp)
-file(GLOB PROJECT_SHADERS Glitter/Shaders/*.comp
-                          Glitter/Shaders/*.frag
-                          Glitter/Shaders/*.geom
-                          Glitter/Shaders/*.vert)
-file(GLOB PROJECT_CONFIGS CMakeLists.txt
-                          Readme.md
-                         .gitattributes
-                         .gitignore
-                         .gitmodules)
+file(GLOB           VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
+file(GLOB_RECURSE   PROJECT_HEADERS Glitter/Headers/*.hpp)
+file(GLOB           PROJECT_SOURCES Glitter/Sources/*.cpp)
+file(GLOB           PROJECT_SHADERS Glitter/Shaders/*.comp
+                                    Glitter/Shaders/*.frag
+                                    Glitter/Shaders/*.geom
+                                    Glitter/Shaders/*.vert)
+file(GLOB           PROJECT_CONFIGS CMakeLists.txt
+                                    Readme.md
+                                    .gitattributes
+                                    .gitignore
+                                    .gitmodules)
 
 source_group("Headers" FILES ${PROJECT_HEADERS})
 source_group("Shaders" FILES ${PROJECT_SHADERS})
@@ -60,6 +53,16 @@ add_definitions(-DGLFW_INCLUDE_NONE
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
+target_include_directories(${PROJECT_NAME} PRIVATE 
+                    Glitter/Headers/
+                    Glitter/Headers/Utils/  
+                    Glitter/Vendor/assimp/include/
+                    Glitter/Vendor/bullet/src/
+                    Glitter/Vendor/glad/include/
+                    Glitter/Vendor/glfw/include/
+                    Glitter/Vendor/glm/
+                    Glitter/Vendor/stb/)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
                       BulletDynamics BulletCollision LinearMath)
