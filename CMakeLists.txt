@@ -27,7 +27,9 @@ else()
     endif()
 endif()
 
+configure_file(Glitter/Headers/Utils/filesystem.hpp.in Glitter/Headers/Utils/filesystem.hpp)
 include_directories(Glitter/Headers/
+
                     Glitter/Vendor/assimp/include/
                     Glitter/Vendor/bullet/src/
                     Glitter/Vendor/glad/include/
