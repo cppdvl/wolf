@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -82,7 +81,7 @@ int main()
 
     // build and compile shaders
     // -------------------------
-    Shader shader("1.advanced_lighting.vs", "1.advanced_lighting.fs");
+    Shader shader("lighting.vs", "lighting.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -113,7 +112,7 @@ int main()
 
     // load textures
     // -------------
-    unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/wood.png").c_str());
+    unsigned int floorTexture = loadTexture(FileSystem::getPath("Resources/Textures/wood.png").c_str());
     
     // shader configuration
     // --------------------

@@ -3,7 +3,9 @@
 
 #include <string>
 #include <cstdlib>
-const char * logl_root = "${CMAKE_SOURCE_DIR}";
+
+//TODO: This mechanism should change
+const char * logl_root = "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}"; 
 
 class FileSystem {
 private:

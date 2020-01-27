@@ -49,7 +49,17 @@ source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
 add_definitions(-DGLFW_INCLUDE_NONE
-                -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
+                -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"
+                -DSTB_IMAGE_IMPLEMENTATION
+                )
+list(APPEND FULL_SOURCES_LIST ${PROJECT_SOURCES} ${PROJECT_HEADERS}
+                               ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
+                               ${VENDORS_SOURCES})
+message(STATUS "Full sources list: ")
+foreach(FULL_SOURCES_LIST_ELEM IN LISTS FULL_SOURCES_LIST)
+    message(STATUS "Resource: ${FULL_SOURCES_LIST_ELEM}")
+endforeach()
+
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
                                ${VENDORS_SOURCES})
