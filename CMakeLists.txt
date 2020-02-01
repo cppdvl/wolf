@@ -31,6 +31,13 @@ set(CMAKE_VERBOSE_MAKEFILE TRUE)
 configure_file(Glitter/Headers/Utils/filesystem.hpp.in ${CMAKE_SOURCE_DIR}/Glitter/Headers/Utils/filesystem.hpp)
 
 file(GLOB           VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
+file(GLOB           GUIIMPL_SOURCES Glitter/Vendor/imgui/examples/imgui_impl_glfw.*
+                                    Glitter/Vendor/imgui/examples/imgui_impl_opengl3.*
+                                    Glitter/Vendor/imgui/*.h
+                                    Glitter/Vendor/imgui/imgui_demo.cpp
+                                    Glitter/Vendor/imgui/imgui_draw.cpp
+                                    Glitter/Vendor/imgui/imgui_widgets.cpp)
+
 file(GLOB_RECURSE   PROJECT_HEADERS Glitter/Headers/*.hpp)
 file(GLOB           PROJECT_SOURCES Glitter/Sources/*.cpp)
 file(GLOB           PROJECT_SHADERS Glitter/Shaders/*.comp
@@ -54,7 +61,7 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 )
 list(APPEND FULL_SOURCES_LIST ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES})
+                               ${VENDORS_SOURCES} ${GUIIMPL_SOURCES})
 message(STATUS "Full sources list: ")
 foreach(FULL_SOURCES_LIST_ELEM IN LISTS FULL_SOURCES_LIST)
     message(STATUS "Resource: ${FULL_SOURCES_LIST_ELEM}")
