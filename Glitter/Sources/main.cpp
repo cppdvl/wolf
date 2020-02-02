@@ -5,23 +5,41 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <filesystem.hpp>
 
 #include <shader_m.hpp>
 #include <camera.hpp>
 #include <model.hpp>
 
+
+#include <string>
 #include <iostream>
 
+
+/*************************************************************/
+/** General Settings : Apply always when using GLFW+OpenGL  **/
+/*************************************************************/
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
-unsigned int loadTexture(const char *path);
 
 // settings
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
+
+// opengl GLSL version
+const std::string glsl_version {"#version 330"};
+
+/********************************************************/
+/***************** Application Settings *****************/
+/********************************************************/
+
+unsigned int loadTexture(const char *path);
+
 bool blinn = false;
 bool blinnKeyPressed = false;
 
@@ -34,6 +52,7 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
 
 int main()
 {
@@ -79,6 +98,22 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Setup Dear ImGui Context
+    // ------------------------
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    // Setup Dear ImGui style
+    // ----------------------
+    ImGui::StyleColorsDark();
+
+    // Setup Platform/Renderer bindings
+    // --------------------------------
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+
+
     // build and compile shaders
     // -------------------------
     Shader shader("lighting.vs", "lighting.fs");
@@ -123,6 +158,13 @@ int main()
     // -------------
     glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 
+
+    // Clear Color in the GUI
+    // ----------------------
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool check0{true};
+    bool check1{true};
+    
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -137,9 +179,37 @@ int main()
         // -----
         processInput(window);
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Check 0", &check0);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Check 1", &check1);
+
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
+        }
+        ImGui::Render();
+
         // render
         // ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw objects

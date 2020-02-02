@@ -78,7 +78,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
                     Glitter/Vendor/glad/include/
                     Glitter/Vendor/glfw/include/
                     Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/)
+                    Glitter/Vendor/stb/
+                    Glitter/Vendor/imgui/
+                    Glitter/Vendor/imgui/examples)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
