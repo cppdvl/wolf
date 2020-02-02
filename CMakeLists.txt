@@ -34,9 +34,14 @@ file(GLOB           VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
 file(GLOB           GUIIMPL_SOURCES Glitter/Vendor/imgui/examples/imgui_impl_glfw.*
                                     Glitter/Vendor/imgui/examples/imgui_impl_opengl3.*
                                     Glitter/Vendor/imgui/*.h
-                                    Glitter/Vendor/imgui/imgui_demo.cpp
+                                    Glitter/Vendor/imgui/imgui.cpp
                                     Glitter/Vendor/imgui/imgui_draw.cpp
                                     Glitter/Vendor/imgui/imgui_widgets.cpp)
+
+message(STATUS ${GUIIMPL_SOURCES})
+foreach(GUISOIRCES ${GUIIMPL_SOURCES})
+    message(STATUS "Gui Resource: ${GUISOIRCES}")
+endforeach()
 
 file(GLOB_RECURSE   PROJECT_HEADERS Glitter/Headers/*.hpp)
 file(GLOB           PROJECT_SOURCES Glitter/Sources/*.cpp)
@@ -67,9 +72,9 @@ foreach(FULL_SOURCES_LIST_ELEM IN LISTS FULL_SOURCES_LIST)
     message(STATUS "Resource: ${FULL_SOURCES_LIST_ELEM}")
 endforeach()
 
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS}
-                               ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES})
+add_executable(${PROJECT_NAME})
+target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST})
+
 target_include_directories(${PROJECT_NAME} PRIVATE 
                     Glitter/Headers/
                     Glitter/Headers/Utils/  

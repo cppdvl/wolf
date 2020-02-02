@@ -54,6 +54,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 
+
 int main()
 {
     // glfw: initialize and configure
@@ -205,6 +206,7 @@ int main()
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
+        //Update Imgui Render but for ImGui itself?
         ImGui::Render();
 
         // render
@@ -212,6 +214,7 @@ int main()
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        
         // draw objects
         shader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -230,6 +233,10 @@ int main()
 
         std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
+        
+        //ImGui Render in the Opengl context
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
