@@ -43,6 +43,9 @@ unsigned int loadTexture(const char *path);
 bool blinn = false;
 bool blinnKeyPressed = false;
 
+std::string blinnString {"Blinn - Phong"};
+std::string phongString {"Phong"};
+char* guiText{nullptr};
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
@@ -53,8 +56,9 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-
-
+// Gui State
+bool guiMode = false;
+bool guiModeKeyPressed = false;
 int main()
 {
     // glfw: initialize and configure
@@ -165,7 +169,9 @@ int main()
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool check0{true};
     bool check1{true};
-    
+    guiText = blinn ? blinnString.data() : phongString.data();
+
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -191,7 +197,8 @@ int main()
 
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+
+            ImGui::Text(guiText);               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Check 0", &check0);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Check 1", &check1);
 
@@ -231,7 +238,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
+        //std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
         
         //ImGui Render in the Opengl context
@@ -256,27 +263,46 @@ int main()
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (!guiMode){
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            camera.ProcessKeyboard(FORWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            camera.ProcessKeyboard(BACKWARD, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            camera.ProcessKeyboard(LEFT, deltaTime);
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            camera.ProcessKeyboard(RIGHT, deltaTime);
+    }
 
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed) 
     {
         blinn = !blinn;
         blinnKeyPressed = true;
+        guiText = blinn ? blinnString.data() : phongString.data();
+
     }
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) 
     {
         blinnKeyPressed = false;
     }
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS && !guiModeKeyPressed) 
+    {
+        guiMode = !guiMode;
+        guiModeKeyPressed = true;
+        // tell GLFW to capture our mouse
+        glfwSetInputMode(window, GLFW_CURSOR, guiMode ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+
+    }
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE) 
+    {
+        guiModeKeyPressed = false;
+    }
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -304,8 +330,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
     lastX = xpos;
     lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    if (!guiMode){
+        camera.ProcessMouseMovement(xoffset, yoffset);
+    }
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
