@@ -26,3 +26,7 @@
 	path = Glitter/Vendor/imgui
 	url = git@github.com:ocornut/imgui.git
     branch = master
+[submodule "Glitter/Vendor/wolfengine"]
+	path = Glitter/Vendor/wolfengine
+	url = git@github.com:cppdvl/wolfimporter.git
+    branch = master
