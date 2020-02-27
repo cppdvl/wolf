@@ -60,6 +60,9 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
+add_subdirectory(Glitter/Vendor/wolfengine/src)
+
+
 add_definitions(-DGLFW_INCLUDE_NONE
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"
                 -DSTB_IMAGE_IMPLEMENTATION
@@ -85,15 +88,28 @@ target_include_directories(${PROJECT_NAME} PRIVATE
                     Glitter/Vendor/glm/
                     Glitter/Vendor/stb/
                     Glitter/Vendor/imgui/
-                    Glitter/Vendor/imgui/examples)
+                    Glitter/Vendor/imgui/examples
+                    Glitter/Vendor/wolfengine/include)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-                      BulletDynamics BulletCollision LinearMath)
+                      BulletDynamics BulletCollision LinearMath WolfImporter)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Glitter/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    DEPENDS ${PROJECT_SHADERS})
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Glitter/Vendor/wolfengine/*.mtl $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    DEPENDS ${PROJECT_SHADERS})
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Glitter/Vendor/wolfengine/*.obj $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    DEPENDS ${PROJECT_SHADERS})
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Glitter/Vendor/wolfengine/*.png $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})

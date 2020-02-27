@@ -5,7 +5,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <imgui.h>
+#include <wolf/maputils.hpp>
+#include <wolf/import/_3dformats/objfileparser.hpp>
+
+
+#include <imgui.h>  
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <filesystem.hpp>
@@ -16,6 +20,7 @@
 
 
 #include <string>
+#include <vector>
 #include <iostream>
 
 
@@ -59,6 +64,14 @@ float lastFrame = 0.0f;
 // Gui State
 bool guiMode = false;
 bool guiModeKeyPressed = false;
+
+void killPrimitivePlane(unsigned int&, unsigned int&);
+void primitivePlane(unsigned int&, unsigned int&); 
+void fuhrerCube(std::vector<unsigned int>&, std::vector<unsigned int>&);
+
+std::vector<unsigned int> fuhrerCubeVAO{};
+std::vector<unsigned int> fuhrerCubeVBO{};
+
 int main()
 {
     // glfw: initialize and configure
@@ -123,32 +136,11 @@ int main()
     // -------------------------
     Shader shader("lighting.vs", "lighting.fs");
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float planeVertices[] = {
-        // positions            // normals         // texcoords
-         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-        -10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,   0.0f,  0.0f,
-        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-
-         10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
-        -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
-    };
-    // plane VAO
+    // plane & fuhrer
+    // -------------------------
     unsigned int planeVAO, planeVBO;
-    glGenVertexArrays(1, &planeVAO);
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glBindVertexArray(0);
+    primitivePlane(planeVAO, planeVBO);
+    fuhrerCube(fuhrerCubeVAO, fuhrerCubeVBO);
 
     // load textures
     // -------------
@@ -250,11 +242,7 @@ int main()
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &planeVAO);
-    glDeleteBuffers(1, &planeVBO);
-
+    killPrimitivePlane(planeVAO, planeVBO);
     glfwTerminate();
     return 0;
 }
