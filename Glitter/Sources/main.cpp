@@ -67,10 +67,11 @@ bool guiModeKeyPressed = false;
 
 void killPrimitivePlane(unsigned int&, unsigned int&);
 void primitivePlane(unsigned int&, unsigned int&); 
-void fuhrerCube(std::vector<unsigned int>&, std::vector<unsigned int>&);
+void fuhrerCube(std::vector<unsigned int>&, std::vector<unsigned int>&, std::vector<unsigned int>&);
 
 std::vector<unsigned int> fuhrerCubeVAO{};
 std::vector<unsigned int> fuhrerCubeVBO{};
+std::vector<unsigned int> fuhrerCubeVertexCount{};
 
 int main()
 {
@@ -140,7 +141,8 @@ int main()
     // -------------------------
     unsigned int planeVAO, planeVBO;
     primitivePlane(planeVAO, planeVBO);
-    fuhrerCube(fuhrerCubeVAO, fuhrerCubeVBO);
+    fuhrerCube(fuhrerCubeVAO, fuhrerCubeVBO, fuhrerCubeVertexCount);
+
 
     // load textures
     // -------------
@@ -153,7 +155,7 @@ int main()
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
+    glm::vec3 lightPos(0.0f, 8.0f, -2.0f);
 
 
     // Clear Color in the GUI
@@ -225,11 +227,29 @@ int main()
         shader.setVec3("lightPos", lightPos);
         shader.setInt("blinn", blinn);
         // floor
+
+        // fuhrercube
+        const auto fuhrerCubeVaoCount = fuhrerCubeVAO.size();
+        auto fuhrerCubeVaoPtr = fuhrerCubeVAO.data();
+        auto fuhrerCubeVboPtr = fuhrerCubeVBO.data();
+        auto fuhrerCubeVertexCountPtr = fuhrerCubeVertexCount.data();
+
         glBindVertexArray(planeVAO);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        for (auto fuhrerCubeVaoIndex = 0; fuhrerCubeVaoIndex < 1 /*fuhrerCubeVaoCount*/; ++fuhrerCubeVaoIndex){
+            
+            auto vao = fuhrerCubeVaoPtr[fuhrerCubeVaoIndex];
+            auto vertexCount = fuhrerCubeVertexCountPtr[fuhrerCubeVaoIndex];
+            glBindVertexArray(vao);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, floorTexture);
+            glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        }
+        
         //std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
         
