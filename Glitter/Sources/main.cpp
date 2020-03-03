@@ -16,7 +16,7 @@
 
 #include <shader_m.hpp>
 #include <camera.hpp>
-#include <model.hpp>
+#include <stb_image.h>
 
 
 #include <string>
