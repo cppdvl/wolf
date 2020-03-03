@@ -155,8 +155,8 @@ int main()
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(0.0f, 8.0f, -2.0f);
-
+    glm::vec3 lightPos(0.0f, 4.0f, 2.0f);
+    
 
     // Clear Color in the GUI
     // ----------------------
@@ -240,7 +240,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        for (auto fuhrerCubeVaoIndex = 0; fuhrerCubeVaoIndex < 1 /*fuhrerCubeVaoCount*/; ++fuhrerCubeVaoIndex){
+        for (auto fuhrerCubeVaoIndex = 0; fuhrerCubeVaoIndex < fuhrerCubeVaoCount; ++fuhrerCubeVaoIndex){
             
             auto vao = fuhrerCubeVaoPtr[fuhrerCubeVaoIndex];
             auto vertexCount = fuhrerCubeVertexCountPtr[fuhrerCubeVaoIndex];
