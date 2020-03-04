@@ -17,7 +17,10 @@ uniform vec3 k_d;
 
 void main()
 {           
-    vec3 color = texture(floorTexture, fs_in.TexCoords).rgb;
+
+    vec3 color = textureFactor * texture(floorTexture, fs_in.TexCoords).rgb;
+    vec3 k_dw = vec3(1.0, 0.0, 0.0) * (1.0f - textureFactor);
+    color = k_dw + color;
 
     // ambient
     vec3 ambient = 0.05 * color;

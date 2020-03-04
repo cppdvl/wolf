@@ -30,7 +30,17 @@ void fuhrerCube(
         auto dataVectorPtr = dataVector.data();
         auto matInfo = objdata.DumpMaterialInformation("fuhrercube.mtl",p);
         
-        
+        auto materialDictionary = std::map<std::string, std::vector<float>>{
+            std::make_pair("kd", matInfo.kd),
+            std::make_pair("ka", matInfo.ka),
+            std::make_pair("ke", matInfo.ke),
+            std::make_pair("ks", matInfo.ks),
+            std::make_pair("op", std::vector<float>{matInfo.opacity}),
+            std::make_pair("se", std::vector<float>{matInfo.specularExponent}),
+            std::make_pair("od", std::vector<float>{matInfo.opticalDensity})
+        };
+        matdictionaryvector.push_back(materialDictionary);
+        texturenamevector.push_back(matInfo.texturefile);
         
         unsigned int vbo; 
         unsigned int vao;

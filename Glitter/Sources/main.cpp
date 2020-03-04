@@ -161,7 +161,7 @@ int main()
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(0.0f, 4.0f, 2.0f);
+    glm::vec3 lightPos(3.0f, 3.0f, 2.0f);
     
 
     // Clear Color in the GUI
@@ -241,19 +241,25 @@ int main()
         auto fuhrerCubeVertexCountPtr = fuhrerCubeVertexCount.data();
 
         glBindVertexArray(planeVAO);
+        shader.setFloat("textureFactor", 1.0f);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        
 
-        for (auto fuhrerCubeVaoIndex = 0; fuhrerCubeVaoIndex < fuhrerCubeVaoCount; ++fuhrerCubeVaoIndex){
+        for (auto fuhrerCubeIndx = 0; fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
             
-            auto vao = fuhrerCubeVaoPtr[fuhrerCubeVaoIndex];
-            auto vertexCount = fuhrerCubeVertexCountPtr[fuhrerCubeVaoIndex];
+            auto vao = fuhrerCubeVaoPtr[fuhrerCubeIndx];
+            auto vertexCount = fuhrerCubeVertexCountPtr[fuhrerCubeIndx];
+
             glBindVertexArray(vao);
+            shader.setFloat("textureFactor", 0.0f);
+
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, floorTexture);
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        
         }
         
         //std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
