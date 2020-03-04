@@ -67,12 +67,18 @@ bool guiModeKeyPressed = false;
 
 void killPrimitivePlane(unsigned int&, unsigned int&);
 void primitivePlane(unsigned int&, unsigned int&); 
-void fuhrerCube(std::vector<unsigned int>&, std::vector<unsigned int>&, std::vector<unsigned int>&);
+void fuhrerCube(
+    std::vector<unsigned int>&vaovector, 
+    std::vector<unsigned int>&vbovector, 
+    std::vector<unsigned int>&vertexcount,
+    std::vector<std::map<std::string, std::vector<float>>>& matdictionaryvector,
+    std::vector<std::string>& texturenamevector);
 
 std::vector<unsigned int> fuhrerCubeVAO{};
 std::vector<unsigned int> fuhrerCubeVBO{};
 std::vector<unsigned int> fuhrerCubeVertexCount{};
-
+std::vector<std::map<std::string, std::vector<float>>> fuhrerCubeMaterial{};
+std::vector<std::string> fuhrerCubeTexures{};
 int main()
 {
     // glfw: initialize and configure
@@ -135,13 +141,13 @@ int main()
 
     // build and compile shaders
     // -------------------------
-    Shader shader("lighting.vs", "lighting.fs");
+    Shader shader("lighting.vs", "wavefront.fs");
 
     // plane & fuhrer
     // -------------------------
     unsigned int planeVAO, planeVBO;
     primitivePlane(planeVAO, planeVBO);
-    fuhrerCube(fuhrerCubeVAO, fuhrerCubeVBO, fuhrerCubeVertexCount);
+    fuhrerCube(fuhrerCubeVAO, fuhrerCubeVBO, fuhrerCubeVertexCount, fuhrerCubeMaterial, fuhrerCubeTexures);
 
 
     // load textures

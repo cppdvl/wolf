@@ -1,4 +1,6 @@
+#include <map>
 #include <array>
+#include <utility>
 #include <iomanip>
 #include <iostream>
 #include <algorithm>
@@ -8,8 +10,14 @@
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
 
-void fuhrerCube(std::vector<unsigned int>& vaovector, std::vector<unsigned int>&vbovector, std::vector<unsigned int>& vertexcount){
-
+void fuhrerCube(
+    
+    std::vector<unsigned int>&vaovector, 
+    std::vector<unsigned int>&vbovector, 
+    std::vector<unsigned int>&vertexcount,
+    std::vector<std::map<std::string, std::vector<float>>>& matdictionaryvector,
+    std::vector<std::string>& texturenamevector){    
+    
     Wolf::_3DFormats::OBJFileParser objdata("fuhrercube.obj");
     objdata.Serialize();
     
@@ -20,6 +28,10 @@ void fuhrerCube(std::vector<unsigned int>& vaovector, std::vector<unsigned int>&
         std::cout << "Generating OpenGl vao's and vbo's for shader:" << p << std::endl;
         auto dataVector = objdata.DumpCodeVector("Cube", p);
         auto dataVectorPtr = dataVector.data();
+        auto matInfo = objdata.DumpMaterialInformation("fuhrercube.mtl",p);
+        
+        
+        
         unsigned int vbo; 
         unsigned int vao;
         glGenVertexArrays(1, &vao);
