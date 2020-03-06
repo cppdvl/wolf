@@ -39,8 +39,8 @@ file(GLOB           GUIIMPL_SOURCES Glitter/Vendor/imgui/examples/imgui_impl_glf
                                     Glitter/Vendor/imgui/imgui_widgets.cpp)
 
 message(STATUS ${GUIIMPL_SOURCES})
-foreach(GUISOIRCES ${GUIIMPL_SOURCES})
-    message(STATUS "Gui Resource: ${GUISOIRCES}")
+foreach(GUISOURCES ${GUIIMPL_SOURCES})
+    message(STATUS "Gui Resource: ${GUISOURCES}")
 endforeach()
 
 file(GLOB_RECURSE   PROJECT_HEADERS Glitter/Headers/*.hpp)

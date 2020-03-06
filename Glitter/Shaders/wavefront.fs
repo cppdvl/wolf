@@ -12,14 +12,14 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform bool blinn;
 uniform float textureFactor;
-uniform vec3 k_d;
+uniform vec3 kd;
 
 
 void main()
 {           
 
     vec3 color = textureFactor * texture(floorTexture, fs_in.TexCoords).rgb;
-    vec3 k_dw = vec3(1.0, 0.0, 0.0) * (1.0f - textureFactor);
+    vec3 k_dw = kd * (1.0f - textureFactor);
     color = k_dw + color;
 
     // ambient

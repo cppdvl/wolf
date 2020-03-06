@@ -71,13 +71,13 @@ void fuhrerCube(
     std::vector<unsigned int>&vaovector, 
     std::vector<unsigned int>&vbovector, 
     std::vector<unsigned int>&vertexcount,
-    std::vector<std::map<std::string, std::vector<float>>>& matdictionaryvector,
+    std::vector<std::map<std::string, glm::vec3>>& matdictionaryvector,
     std::vector<std::string>& texturenamevector);
 
 std::vector<unsigned int> fuhrerCubeVAO{};
 std::vector<unsigned int> fuhrerCubeVBO{};
 std::vector<unsigned int> fuhrerCubeVertexCount{};
-std::vector<std::map<std::string, std::vector<float>>> fuhrerCubeMaterial{};
+std::vector<std::map<std::string, glm::vec3>> fuhrerCubeMaterial{};
 std::vector<std::string> fuhrerCubeTexures{};
 int main()
 {
@@ -147,7 +147,12 @@ int main()
     // -------------------------
     unsigned int planeVAO, planeVBO;
     primitivePlane(planeVAO, planeVBO);
-    fuhrerCube(fuhrerCubeVAO, fuhrerCubeVBO, fuhrerCubeVertexCount, fuhrerCubeMaterial, fuhrerCubeTexures);
+    fuhrerCube(
+        fuhrerCubeVAO, 
+        fuhrerCubeVBO, 
+        fuhrerCubeVertexCount, 
+        fuhrerCubeMaterial, 
+        fuhrerCubeTexures);
 
 
     // load textures
@@ -161,7 +166,7 @@ int main()
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(3.0f, 3.0f, 2.0f);
+    glm::vec3 lightPos(-3.0f, 3.0f, -2.0f);
     
 
     // Clear Color in the GUI
@@ -232,6 +237,7 @@ int main()
         shader.setVec3("viewPos", camera.Position);
         shader.setVec3("lightPos", lightPos);
         shader.setInt("blinn", blinn);
+
         // floor
 
         // fuhrercube
@@ -247,15 +253,17 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-
+        shader.setFloat("textureFactor", 0.0f);
         for (auto fuhrerCubeIndx = 0; fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
             
             auto vao = fuhrerCubeVaoPtr[fuhrerCubeIndx];
             auto vertexCount = fuhrerCubeVertexCountPtr[fuhrerCubeIndx];
 
             glBindVertexArray(vao);
-            shader.setFloat("textureFactor", 0.0f);
-
+            auto k_d = fuhrerCubeMaterial[fuhrerCubeIndx]["kd"];
+            shader.setVec3("kd", k_d);
+        
+            
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, floorTexture);
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);

@@ -9,13 +9,17 @@
 #include <wolf/maputils.hpp>
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 void fuhrerCube(
     
     std::vector<unsigned int>&vaovector, 
     std::vector<unsigned int>&vbovector, 
     std::vector<unsigned int>&vertexcount,
-    std::vector<std::map<std::string, std::vector<float>>>& matdictionaryvector,
+    std::vector<std::map<std::string, glm::vec3>>& matdictionaryvector,
     std::vector<std::string>& texturenamevector){    
     
     Wolf::_3DFormats::OBJFileParser objdata("fuhrercube.obj");
@@ -30,15 +34,14 @@ void fuhrerCube(
         auto dataVectorPtr = dataVector.data();
         auto matInfo = objdata.DumpMaterialInformation("fuhrercube.mtl",p);
         
-        auto materialDictionary = std::map<std::string, std::vector<float>>{
+        auto materialDictionary = std::map<std::string, glm::vec3>{
             std::make_pair("kd", matInfo.kd),
             std::make_pair("ka", matInfo.ka),
             std::make_pair("ke", matInfo.ke),
             std::make_pair("ks", matInfo.ks),
-            std::make_pair("op", std::vector<float>{matInfo.opacity}),
-            std::make_pair("se", std::vector<float>{matInfo.specularExponent}),
-            std::make_pair("od", std::vector<float>{matInfo.opticalDensity})
+            std::make_pair("op_se_od", matInfo.op_se_od)
         };
+        std::cout << "Mat : " << p << " " << matInfo.kd.x << " " << matInfo.kd.y << " " << matInfo.kd.z << std::endl;
         matdictionaryvector.push_back(materialDictionary);
         texturenamevector.push_back(matInfo.texturefile);
         
