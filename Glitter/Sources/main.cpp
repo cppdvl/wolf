@@ -43,7 +43,7 @@ const std::string glsl_version {"#version 330"};
 /***************** Application Settings *****************/
 /********************************************************/
 
-unsigned int loadTexture(const char *path);
+unsigned int loadTexture(const char *path, int vertical_inversion = 0);
 
 bool blinn = false;
 bool blinnKeyPressed = false;
@@ -78,7 +78,7 @@ std::vector<unsigned int> fuhrerCubeVAO{};
 std::vector<unsigned int> fuhrerCubeVBO{};
 std::vector<unsigned int> fuhrerCubeVertexCount{};
 std::vector<std::map<std::string, glm::vec3>> fuhrerCubeMaterial{};
-std::vector<std::string> fuhrerCubeTexures{};
+std::vector<std::string> fuhrerCubeTextures{};
 int main()
 {
     // glfw: initialize and configure
@@ -152,13 +152,17 @@ int main()
         fuhrerCubeVBO, 
         fuhrerCubeVertexCount, 
         fuhrerCubeMaterial, 
-        fuhrerCubeTexures);
+        fuhrerCubeTextures);
 
+    for (auto&fct : fuhrerCubeTextures) {
+        std::cout << " Texture: " << (fct.empty()?"none" : fct) << std::endl;
+    }
 
     // load textures
     // -------------
     unsigned int floorTexture = loadTexture(FileSystem::getPath("Resources/Textures/wood.png").c_str());
-    
+    unsigned int fuhrerTexture = loadTexture(FileSystem::getPath("../Build/Glitter/fuhrer.png").c_str(), 1);
+    std::cout << "Fuhrer Texture: " << fuhrerTexture << std::endl;
     // shader configuration
     // --------------------
     shader.use();
@@ -166,7 +170,7 @@ int main()
 
     // lighting info
     // -------------
-    glm::vec3 lightPos(-3.0f, 3.0f, -2.0f);
+    glm::vec3 lightPos(-3.0f, 3.0f, 3.0f);
     
 
     // Clear Color in the GUI
@@ -253,7 +257,8 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-        shader.setFloat("textureFactor", 0.0f);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fuhrerTexture);
         for (auto fuhrerCubeIndx = 0; fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
             
             auto vao = fuhrerCubeVaoPtr[fuhrerCubeIndx];
@@ -262,10 +267,9 @@ int main()
             glBindVertexArray(vao);
             auto k_d = fuhrerCubeMaterial[fuhrerCubeIndx]["kd"];
             shader.setVec3("kd", k_d);
-        
+            shader.setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
+
             
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, floorTexture);
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
         
         }
@@ -372,12 +376,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 // utility function for loading a 2D texture from file
 // ---------------------------------------------------
-unsigned int loadTexture(char const * path)
+unsigned int loadTexture(char const * path, int vertical_inversion)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
 
     int width, height, nrComponents;
+    stbi_set_flip_vertically_on_load(vertical_inversion);   
     unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
     if (data)
     {
@@ -393,10 +398,10 @@ unsigned int loadTexture(char const * path)
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat 
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         stbi_image_free(data);
     }

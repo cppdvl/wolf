@@ -29,7 +29,7 @@ void fuhrerCube(
     auto geometrytDataKeys = Wolf::MapUtils::keys(geometryData);
     std::for_each(geometrytDataKeys.begin(), geometrytDataKeys.end(),
     [&](auto&p){
-        std::cout << "Generating OpenGl vao's and vbo's for shader:" << p << std::endl;
+        std::cout << std::endl << "Generating OpenGl vao's and vbo's for shader:" << p << std::endl;
         auto dataVector = objdata.DumpCodeVector("Cube", p);
         auto dataVectorPtr = dataVector.data();
         auto matInfo = objdata.DumpMaterialInformation("fuhrercube.mtl",p);
@@ -43,7 +43,11 @@ void fuhrerCube(
         };
         std::cout << "Mat : " << p << " " << matInfo.kd.x << " " << matInfo.kd.y << " " << matInfo.kd.z << std::endl;
         matdictionaryvector.push_back(materialDictionary);
+        std::cout << "Mat : " << p << " pushing texture " << matInfo.texturefile << std::endl;
         texturenamevector.push_back(matInfo.texturefile);
+        
+        auto texturenamevectorsz = texturenamevector.size();
+        if (texturenamevector[texturenamevectorsz - 1].empty() == false) std::cout << "Mat : " << p << " has texture " << texturenamevector[texturenamevectorsz - 1] << std::endl; 
         
         unsigned int vbo; 
         unsigned int vao;
