@@ -1,5 +1,5 @@
 # [WOLF](https://github.com/cppdvl/wolf)
-![Screenshot](https://miro.medium.com/max/1392/1*XOwFNRyMXtz68AIZShtiog.png)
+![Screenshot](https://miro.medium.com/max/1392/0*VYrsTP6qmUr-tjsp.png)
 
 ## Summary
 Wolf is a cloning remake of Wolfenstein3D, I forked Glitter as boilerplate for OpenGL, which is "intended as a starting point for the tutorials on [learnopengl.com](http://www.learnopengl.com) and [open.gl](https://open.gl)." I used this an some example from [learnopengl.com](http://www.learnopengl.com) to have a starting point.
