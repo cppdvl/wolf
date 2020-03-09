@@ -8,7 +8,10 @@ in VS_OUT {
 } fs_in;
 
 uniform sampler2D floorTexture;
+
 uniform vec3 lightPos;
+uniform bool useLight;
+
 uniform vec3 viewPos;
 uniform bool blinn;
 uniform float textureFactor;
@@ -30,6 +33,11 @@ void main()
     vec3 normal = normalize(fs_in.Normal);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * color;
+    if (useLight){
+        diffuse = diff * color;
+    } else {
+        diffuse = color;
+    }
 
     // specular
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);

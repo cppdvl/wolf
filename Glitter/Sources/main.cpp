@@ -37,7 +37,7 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
 // opengl GLSL version
-const std::string glsl_version {"#version 330"};
+// const std::string glsl_version {"#version 330"};
 
 /********************************************************/
 /***************** Application Settings *****************/
@@ -52,7 +52,7 @@ std::string blinnString {"Blinn - Phong"};
 std::string phongString {"Phong"};
 char* guiText{nullptr};
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 1.0f, 8.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
@@ -79,6 +79,9 @@ std::vector<unsigned int> fuhrerCubeVBO{};
 std::vector<unsigned int> fuhrerCubeVertexCount{};
 std::vector<std::map<std::string, glm::vec3>> fuhrerCubeMaterial{};
 std::vector<std::string> fuhrerCubeTextures{};
+
+void setupGuiContext(GLFWwindow* pWind, const std::string glsl_version);
+
 int main()
 {
     // glfw: initialize and configure
@@ -123,20 +126,8 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Setup Dear ImGui Context
-    // ------------------------
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-    // Setup Dear ImGui style
-    // ----------------------
-    ImGui::StyleColorsDark();
-
-    // Setup Platform/Renderer bindings
-    // --------------------------------
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+    // Setup Dear ImGui Context: tell whos the window (GLFW) and what's the GLSL version.
+    setupGuiContext(window, "#version 330");
 
 
     // build and compile shaders
@@ -176,7 +167,7 @@ int main()
     // Clear Color in the GUI
     // ----------------------
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    bool check0{true};
+    bool useLight{true};
     bool check1{true};
     guiText = blinn ? blinnString.data() : phongString.data();
 
@@ -208,7 +199,7 @@ int main()
 
 
             ImGui::Text(guiText);               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Check 0", &check0);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Use Illumination", &useLight);      // Edit bools storing our window open/close state
             ImGui::Checkbox("Check 1", &check1);
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
@@ -239,8 +230,11 @@ int main()
         shader.setMat4("view", view);
         // set light uniforms
         shader.setVec3("viewPos", camera.Position);
+
         shader.setVec3("lightPos", lightPos);
-        shader.setInt("blinn", blinn);
+        shader.setBool("useLight", useLight);
+
+        shader.setBool("blinn", blinn);
 
         // floor
 
