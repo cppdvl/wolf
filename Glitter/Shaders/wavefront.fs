@@ -20,8 +20,14 @@ uniform vec3 kd;
 
 void main()
 {           
-
-    vec3 color = textureFactor * texture(floorTexture, fs_in.TexCoords).rgb;
+    int atlasx = 5;
+    int atlasy = 13; 
+    float texture_width = 0.1666666666;
+    float texture_height = 0.0526315;
+    
+    vec2 TexCoords = vec2(fs_in.TexCoords.x * texture_width + atlasx * texture_width, fs_in.TexCoords.y * texture_height + atlasy * texture_height);
+    vec3 color = textureFactor * texture(floorTexture, TexCoords).rgb;
+    
     vec3 k_dw = kd * (1.0f - textureFactor);
     color = k_dw + color;
 
