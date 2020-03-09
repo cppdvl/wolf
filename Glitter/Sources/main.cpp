@@ -81,7 +81,13 @@ std::vector<std::map<std::string, glm::vec3>> fuhrerCubeMaterial{};
 std::vector<std::string> fuhrerCubeTextures{};
 
 void setupGuiContext(GLFWwindow* pWind, const std::string glsl_version);
-
+void drawGui();
+void drawGuiExtended(
+    char* guiText,
+    bool* pUseLight,
+    float* pClearColor);
+void renderGui();
+void renderGuiOpenGL();
 int main()
 {
     // glfw: initialize and configure
@@ -157,8 +163,7 @@ int main()
     // shader configuration
     // --------------------
     shader.use();
-    shader.setInt("texture1", 0);
-
+    
     // lighting info
     // -------------
     glm::vec3 lightPos(-3.0f, 3.0f, 3.0f);
@@ -168,7 +173,6 @@ int main()
     // ----------------------
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool useLight{true};
-    bool check1{true};
     guiText = blinn ? blinnString.data() : phongString.data();
 
 
@@ -186,36 +190,18 @@ int main()
         // -----
         processInput(window);
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        
+        // gui
+        // -----
+        
+        drawGui();
+        drawGuiExtended(
+            guiText,
+            &useLight,
+            (float*)&clear_color);
+        renderGui();
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-
-            ImGui::Text(guiText);               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Use Illumination", &useLight);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Check 1", &check1);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-        }
-        //Update Imgui Render but for ImGui itself?
-        ImGui::Render();
-
+        
         // render
         // ------
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
@@ -251,7 +237,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-        glActiveTexture(GL_TEXTURE0);
+        
         glBindTexture(GL_TEXTURE_2D, fuhrerTexture);
         for (auto fuhrerCubeIndx = 0; fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
             
@@ -271,9 +257,7 @@ int main()
         //std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
         
-        //ImGui Render in the Opengl context
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
+        renderGuiOpenGL();
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
