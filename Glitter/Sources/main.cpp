@@ -234,10 +234,17 @@ int main()
         glBindVertexArray(planeVAO);
         shader.setFloat("textureFactor", 1.0f);
 
+        shader.setInt("colselector_x", 0);
+        shader.setInt("colselector_y", 0);
+        shader.setFloat("sprite_texture_width", 1.0f);
+        shader.setFloat("sprite_texture_height", 1.0f);
+
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
+
         
         glBindTexture(GL_TEXTURE_2D, fuhrerTexture);
         for (auto fuhrerCubeIndx = 0; fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
@@ -249,6 +256,11 @@ int main()
             auto k_d = fuhrerCubeMaterial[fuhrerCubeIndx]["kd"];
             shader.setVec3("kd", k_d);
             shader.setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
+
+            shader.setInt("colselector_x", 5);
+            shader.setInt("colselector_y", 13);
+            shader.setFloat("sprite_texture_width", 0.166666666);
+            shader.setFloat("sprite_texture_height", 0.0526315);
 
             
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
