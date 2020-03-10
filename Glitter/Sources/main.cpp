@@ -85,7 +85,9 @@ void drawGui();
 void drawGuiExtended(
     char* guiText,
     bool* pUseLight,
-    float* pClearColor);
+    float* pClearColor,
+    int* pColSelector,
+    int* pRowSelector);
 void renderGui();
 void renderGuiOpenGL();
 int main()
@@ -175,7 +177,8 @@ int main()
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool useLight{true};
     guiText = blinn ? blinnString.data() : phongString.data();
-
+    int colSelector{5};
+    int rowSelector{13};
 
     // render loop
     // -----------
@@ -199,7 +202,9 @@ int main()
         drawGuiExtended(
             guiText,
             &useLight,
-            (float*)&clear_color);
+            (float*)&clear_color,
+            &colSelector,
+            &rowSelector);
         renderGui();
 
         
@@ -257,8 +262,8 @@ int main()
             shader.setVec3("kd", k_d);
             shader.setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
 
-            shader.setInt("colselector_x", 5);
-            shader.setInt("colselector_y", 13);
+            shader.setInt("colselector_x", colSelector);
+            shader.setInt("colselector_y", rowSelector);
             shader.setFloat("sprite_texture_width", 0.166666666);
             shader.setFloat("sprite_texture_height", 0.0526315);
 
