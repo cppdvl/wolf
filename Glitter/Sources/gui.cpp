@@ -49,7 +49,6 @@ void drawGuiExtended(
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
     ImGui::ColorEdit3("clear color", pClearColor); // Edit 3 floats representing a color
     ImGui::SliderInt("Grid X", pColSelector, 0, 5);
-    ImGui::SameLine();
     ImGui::SliderInt("Grid Y", pRowSelector, 0, 18);    
     if (ImGui::Button("Button")) counter++; // Buttons return true when clicked (most widgets return true when edited/activated)
                 
