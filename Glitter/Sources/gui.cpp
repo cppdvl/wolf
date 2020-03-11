@@ -35,20 +35,25 @@ void drawGuiExtended(
     float* pClearColor,
     int* pColSelector,
     int* pRowSelector,
-    double* pCursorPos){
-    bool check1{true};
+    double* pCursorPos,
+    int* pWindowSize){
+    
+    static bool useRelativeCoordinates{true};
+    
     static float f = 0.0f;
     static int counter = 0;
 
 
 
     ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-
-    ImGui::Text("Cursor Pos %f, %f", pCursorPos[0], pCursorPos[1]);               // Display some text (you can use a format strings too)
+    
+    auto fPointerCoordx = useRelativeCoordinates ? pCursorPos[0]/pWindowSize[0] : pCursorPos[0];
+    auto fPointerCoordy = useRelativeCoordinates ? pCursorPos[1]/pWindowSize[1] : pCursorPos[1];
+    ImGui::Text("Cursor Pos %f, %f, %d, %d", fPointerCoordx, fPointerCoordy, pWindowSize[0], pWindowSize[1]);               // Display some text (you can use a format strings too)
+    ImGui::Checkbox("Use Relative Coordinates", &useRelativeCoordinates);
+    
     ImGui::Checkbox("Use Illumination", pUseLight);      // Edit bools storing our window open/close state
-    ImGui::Checkbox("Check 1", &check1);
-
+    
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
     ImGui::ColorEdit3("clear color", pClearColor); // Edit 3 floats representing a color
     ImGui::SliderInt("Grid X", pColSelector, 0, 5);

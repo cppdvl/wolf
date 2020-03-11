@@ -35,6 +35,9 @@ void processInput(GLFWwindow *window);
 // settings
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
+int window_size [2] = {1280, 720};
+
+
 
 // opengl GLSL version
 // const std::string glsl_version {"#version 330"};
@@ -93,7 +96,8 @@ void drawGuiExtended(
     float* pClearColor,
     int* pColSelector,
     int* pRowSelector,
-    double* pCursorPos);
+    double* pCursorPos,
+    int* pWindowSize);
 void renderGui();
 void renderGuiOpenGL();
 int main()
@@ -211,7 +215,8 @@ int main()
             (float*)&clear_color,
             &colSelector,
             &rowSelector,
-            cursorPos
+            cursorPos,
+            window_size
             );
         renderGui();
 
@@ -349,6 +354,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
+    window_size[0] = width;
+    window_size[1] = height;
     glViewport(0, 0, width, height);
 }
 
