@@ -34,15 +34,18 @@ void drawGuiExtended(
     bool* pUseLight,
     float* pClearColor,
     int* pColSelector,
-    int* pRowSelector){
+    int* pRowSelector,
+    double* pCursorPos){
     bool check1{true};
     static float f = 0.0f;
     static int counter = 0;
 
+
+
     ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
 
-    ImGui::Text(guiText);               // Display some text (you can use a format strings too)
+    ImGui::Text("Cursor Pos %f, %f", pCursorPos[0], pCursorPos[1]);               // Display some text (you can use a format strings too)
     ImGui::Checkbox("Use Illumination", pUseLight);      // Edit bools storing our window open/close state
     ImGui::Checkbox("Check 1", &check1);
 

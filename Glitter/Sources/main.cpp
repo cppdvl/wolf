@@ -51,11 +51,16 @@ bool blinnKeyPressed = false;
 std::string blinnString {"Blinn - Phong"};
 std::string phongString {"Phong"};
 char* guiText{nullptr};
+
 // camera
 Camera camera(glm::vec3(0.0f, 1.0f, 8.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
+
+// cursor
+double cursorPos[2] = {1.0, 5.0};
+
 
 // timing
 float deltaTime = 0.0f;
@@ -87,7 +92,8 @@ void drawGuiExtended(
     bool* pUseLight,
     float* pClearColor,
     int* pColSelector,
-    int* pRowSelector);
+    int* pRowSelector,
+    double* pCursorPos);
 void renderGui();
 void renderGuiOpenGL();
 int main()
@@ -204,7 +210,9 @@ int main()
             &useLight,
             (float*)&clear_color,
             &colSelector,
-            &rowSelector);
+            &rowSelector,
+            cursorPos
+            );
         renderGui();
 
         
@@ -330,6 +338,8 @@ void processInput(GLFWwindow *window)
     {
         guiModeKeyPressed = false;
     }
+    
+    glfwGetCursorPos(window, &cursorPos[0], &cursorPos[1]);   
 
 }
 
