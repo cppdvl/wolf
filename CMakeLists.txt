@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
-project(Glitter)
+project(Wolf)
 message(STATUS " ._-= Project Name : ${PROJECT_NAME} =-_.")
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(Glitter/Vendor/glfw)
+add_subdirectory(Wolf/Vendor/glfw)
 
 option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 option(ASSIMP_BUILD_SAMPLES OFF)
@@ -28,27 +28,27 @@ else()
 endif()
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
-configure_file(Glitter/Headers/Utils/filesystem.hpp.in ${CMAKE_SOURCE_DIR}/Glitter/Headers/Utils/filesystem.hpp)
+configure_file(Wolf/Headers/Utils/filesystem.hpp.in ${CMAKE_SOURCE_DIR}/Wolf/Headers/Utils/filesystem.hpp)
 
-file(GLOB           VENDORS_SOURCES Glitter/Vendor/glad/src/glad.c)
-file(GLOB           GUIIMPL_SOURCES Glitter/Vendor/imgui/examples/imgui_impl_glfw.*
-                                    Glitter/Vendor/imgui/examples/imgui_impl_opengl3.*
-                                    Glitter/Vendor/imgui/*.h
-                                    Glitter/Vendor/imgui/imgui.cpp
-                                    Glitter/Vendor/imgui/imgui_draw.cpp
-                                    Glitter/Vendor/imgui/imgui_widgets.cpp)
+file(GLOB           VENDORS_SOURCES Wolf/Vendor/glad/src/glad.c)
+file(GLOB           GUIIMPL_SOURCES Wolf/Vendor/imgui/examples/imgui_impl_glfw.*
+                                    Wolf/Vendor/imgui/examples/imgui_impl_opengl3.*
+                                    Wolf/Vendor/imgui/*.h
+                                    Wolf/Vendor/imgui/imgui.cpp
+                                    Wolf/Vendor/imgui/imgui_draw.cpp
+                                    Wolf/Vendor/imgui/imgui_widgets.cpp)
 
 message(STATUS ${GUIIMPL_SOURCES})
 foreach(GUISOURCES ${GUIIMPL_SOURCES})
     message(STATUS "Gui Resource: ${GUISOURCES}")
 endforeach()
 
-file(GLOB_RECURSE   PROJECT_HEADERS Glitter/Headers/*.hpp)
-file(GLOB           PROJECT_SOURCES Glitter/Sources/*.cpp)
-file(GLOB           PROJECT_SHADERS Glitter/Shaders/*.comp
-                                    Glitter/Shaders/*.frag
-                                    Glitter/Shaders/*.geom
-                                    Glitter/Shaders/*.vert)
+file(GLOB_RECURSE   PROJECT_HEADERS Wolf/Headers/*.hpp)
+file(GLOB           PROJECT_SOURCES Wolf/Sources/*.cpp)
+file(GLOB           PROJECT_SHADERS Wolf/Shaders/*.comp
+                                    Wolf/Shaders/*.frag
+                                    Wolf/Shaders/*.geom
+                                    Wolf/Shaders/*.vert)
 file(GLOB           PROJECT_CONFIGS CMakeLists.txt
                                     Readme.md
                                     .gitattributes
@@ -60,7 +60,7 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
-add_subdirectory(Glitter/Vendor/wolfengine/src)
+add_subdirectory(Wolf/Vendor/wolfengine/src)
 
 
 add_definitions(-DGLFW_INCLUDE_NONE
@@ -79,17 +79,17 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST})
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
-                    Glitter/Headers/
-                    Glitter/Headers/Utils/  
-#                   Glitter/Vendor/assimp/include/
-#                   Glitter/Vendor/bullet/src/
-                    Glitter/Vendor/glad/include/
-                    Glitter/Vendor/glfw/include/
-                    Glitter/Vendor/glm/
-                    Glitter/Vendor/stb/
-                    Glitter/Vendor/imgui/
-                    Glitter/Vendor/imgui/examples
-                    Glitter/Vendor/wolfengine/include)
+                    Wolf/Headers/
+                    Wolf/Headers/Utils/  
+#                   Wolf/Vendor/assimp/include/
+#                   Wolf/Vendor/bullet/src/
+                    Wolf/Vendor/glad/include/
+                    Wolf/Vendor/glfw/include/
+                    Wolf/Vendor/glm/
+                    Wolf/Vendor/stb/
+                    Wolf/Vendor/imgui/
+                    Wolf/Vendor/imgui/examples
+                    Wolf/Vendor/wolfengine/include)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
@@ -100,17 +100,17 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Glitter/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Wolf/Shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Glitter/Vendor/wolfengine/*.mtl $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Wolf/Vendor/wolfengine/*.mtl $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Glitter/Vendor/wolfengine/*.obj $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Wolf/Vendor/wolfengine/*.obj $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Glitter/Vendor/wolfengine/*.png $<TARGET_FILE_DIR:${PROJECT_NAME}>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Wolf/Vendor/wolfengine/*.png $<TARGET_FILE_DIR:${PROJECT_NAME}>
     DEPENDS ${PROJECT_SHADERS})

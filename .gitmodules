@@ -1,32 +1,32 @@
 [submodule "Glitter/Vendor/assimp"]
-    path = Glitter/Vendor/assimp
+	path = Wolf/Vendor/assimp
     url = https://github.com/assimp/assimp.git
     branch = master
 [submodule "Glitter/Vendor/glad"]
-    path = Glitter/Vendor/glad
+	path = Wolf/Vendor/glad
     url = https://github.com/Dav1dde/glad.git
     branch = c
 [submodule "Glitter/Vendor/glfw"]
-    path = Glitter/Vendor/glfw
+	path = Wolf/Vendor/glfw
     url = https://github.com/glfw/glfw.git
     branch = master
 [submodule "Glitter/Vendor/glm"]
-    path = Glitter/Vendor/glm
+	path = Wolf/Vendor/glm
     url = https://github.com/g-truc/glm.git
     branch = master
 [submodule "Glitter/Vendor/stb"]
-    path = Glitter/Vendor/stb
+	path = Wolf/Vendor/stb
     url = https://github.com/nothings/stb.git
     branch = master
 [submodule "Glitter/Vendor/bullet"]
-    path = Glitter/Vendor/bullet
+	path = Wolf/Vendor/bullet
     url = https://github.com/bulletphysics/bullet3.git
     branch = master
 [submodule "Glitter/Vendor/imgui"]
-	path = Glitter/Vendor/imgui
+	path = Wolf/Vendor/imgui
 	url = git@github.com:ocornut/imgui.git
     branch = master
 [submodule "Glitter/Vendor/wolfengine"]
-	path = Glitter/Vendor/wolfengine
+	path = Wolf/Vendor/wolfengine
 	url = git@github.com:cppdvl/wolfimporter.git
     branch = master
