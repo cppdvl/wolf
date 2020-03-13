@@ -170,8 +170,7 @@ int main()
     // load textures
     // -------------
     unsigned int floorTexture = loadTexture(FileSystem::getPath("Resources/Textures/wood.png").c_str());
-    //unsigned int fuhrerTexture = loadTexture(FileSystem::getPath("../Build/Glitter/fuhrer.png").c_str(), 1);
-    unsigned int fuhrerTexture = loadTexture(FileSystem::getPath("Resources/Textures/Atlases/walls.png").c_str(), 1);
+    unsigned int fuhrerTexture = loadTexture(FileSystem::getPath("Resources/Textures/Atlases/wolf/walls.png").c_str(), 1);
     std::cout << "Fuhrer Texture: " << fuhrerTexture << std::endl;
     // shader configuration
     // --------------------
