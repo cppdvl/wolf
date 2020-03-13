@@ -2,21 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(Wolf)
 message(STATUS " ._-= Project Name : ${PROJECT_NAME} =-_.")
 option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(Wolf/Vendor/glfw)
-
-option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-option(ASSIMP_BUILD_SAMPLES OFF)
-option(ASSIMP_BUILD_TESTS OFF)
-#add_subdirectory(Glitter/Vendor/assimp)
-
-option(BUILD_BULLET2_DEMOS OFF)
-option(BUILD_CPU_DEMOS OFF)
-option(BUILD_EXTRAS OFF)
-option(BUILD_OPENGL3_DEMOS OFF)
-option(BUILD_UNIT_TESTS OFF)
-#add_subdirectory(Glitter/Vendor/bullet)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -81,8 +67,6 @@ target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST})
 target_include_directories(${PROJECT_NAME} PRIVATE 
                     Wolf/Headers/
                     Wolf/Headers/Utils/  
-#                   Wolf/Vendor/assimp/include/
-#                   Wolf/Vendor/bullet/src/
                     Wolf/Vendor/glad/include/
                     Wolf/Vendor/glfw/include/
                     Wolf/Vendor/glm/
@@ -93,7 +77,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw
                       ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
-#                     BulletDynamics BulletCollision LinearMath 
                         WolfImporter)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
