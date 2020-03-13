@@ -1,7 +1,3 @@
-[submodule "Glitter/Vendor/assimp"]
-	path = Wolf/Vendor/assimp
-    url = https://github.com/assimp/assimp.git
-    branch = master
 [submodule "Glitter/Vendor/glad"]
 	path = Wolf/Vendor/glad
     url = https://github.com/Dav1dde/glad.git
