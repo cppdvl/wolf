@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <wolf/maputils.hpp>
+#include <wolf/pttrns/flyweight.hpp>
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
 
@@ -37,6 +38,60 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 int window_size [2] = {1280, 720};
 
+// Wolf Renderer
+std::vector <unsigned int> foo {1,2,3};
+
+class ObjectRenderingData {
+public:
+    ObjectRenderingData( ) = default;
+    ObjectRenderingData( const ObjectRenderingData& other) = default;
+    ObjectRenderingData( ObjectRenderingData&& other){
+        tMat = other.tMat;
+        shaderInfo = other.shaderInfo;
+        other = ObjectRenderingData();
+    }
+    ObjectRenderingData& operator=(const ObjectRenderingData& other){
+        tMat = other.tMat;
+        shaderInfo = other.shaderInfo;
+        return *this;
+    }
+    glm::mat4 tMat{1.0f};
+    struct {
+
+        float textureFactor {1.0f};
+        int colselector_x{5};
+        int colselector_y{3};
+        float sprite_texture_width{0.166666666};
+        float sprite_texture_height{0.0526315};
+
+    } shaderInfo;
+
+};
+using ORD = ObjectRenderingData;
+class FW_VAO_ORD : public Wolf::FlyWeight::Data<unsigned int, ORD>{
+    public:
+        explicit FW_VAO_ORD() = default;
+        explicit FW_VAO_ORD(const FW_VAO_ORD&) = default;
+        explicit FW_VAO_ORD(FW_VAO_ORD&&) = default;
+
+};
+class FW_SHADER_VAO : public Wolf::FlyWeight::Data<unsigned int, FW_VAO_ORD>{
+    public:
+        explicit FW_SHADER_VAO() = default;
+        explicit FW_SHADER_VAO(const unsigned int& uiShaderProgram) : Wolf::FlyWeight::Data<unsigned int, FW_VAO_ORD>(uiShaderProgram){}
+        explicit FW_SHADER_VAO(const FW_SHADER_VAO&) = delete;
+        explicit FW_SHADER_VAO(FW_SHADER_VAO&&) = delete;
+              
+};
+
+class WolfRenderingData {
+
+    FW_SHADER_VAO fwShaderVao{0};
+public:
+    explicit WolfRenderingData(const unsigned int& uiShaderProgram) : fwShaderVao(uiShaderProgram){
+    
+    }
+};
 
 
 // opengl GLSL version
@@ -167,6 +222,8 @@ int main()
         std::cout << " Texture: " << (fct.empty()?"none" : fct) << std::endl;
     }
 
+    //  auto rndr = WolfRenderer(shader.ID,fuhrerCubeVAO);
+
     // load textures
     // -------------
     unsigned int floorTexture = loadTexture(FileSystem::getPath("Resources/Textures/wood.png").c_str());
@@ -245,7 +302,7 @@ int main()
         // fuhrercube
         const auto fuhrerCubeVaoCount = fuhrerCubeVAO.size();
         auto fuhrerCubeVaoPtr = fuhrerCubeVAO.data();
-        auto fuhrerCubeVboPtr = fuhrerCubeVBO.data();
+        //auto fuhrerCubeVboPtr = fuhrerCubeVBO.data();
         auto fuhrerCubeVertexCountPtr = fuhrerCubeVertexCount.data();
 
         glBindVertexArray(planeVAO);
@@ -260,11 +317,8 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
-        
-
-        
         glBindTexture(GL_TEXTURE_2D, fuhrerTexture);
-        for (auto fuhrerCubeIndx = 0; fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
+        for (auto fuhrerCubeIndx = static_cast<decltype(fuhrerCubeVaoCount)>(0); fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
             
             auto vao = fuhrerCubeVaoPtr[fuhrerCubeIndx];
             auto vertexCount = fuhrerCubeVertexCountPtr[fuhrerCubeIndx];
@@ -349,7 +403,7 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* , int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
@@ -360,7 +414,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
     if (firstMouse)
     {
@@ -381,7 +435,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow*, double, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
 }
@@ -405,6 +459,10 @@ unsigned int loadTexture(char const * path, int vertical_inversion)
             format = GL_RGB;
         else if (nrComponents == 4)
             format = GL_RGBA;
+        else{ 
+            std::cout << "Fatal error...." << std::endl;
+            std::exit(-1);
+        }
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
