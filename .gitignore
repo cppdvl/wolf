@@ -1,3 +1,4 @@
 [Bb]uild/
 .idea/
 .vs/
+CMakeSettings.json

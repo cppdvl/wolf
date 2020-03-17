@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
 project(Wolf)
 message(STATUS " ._-= Project Name : ${PROJECT_NAME} =-_.")
 option(GLFW_BUILD_DOCS OFF)
@@ -6,6 +6,7 @@ add_subdirectory(Wolf/Vendor/glfw)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+	set(CMAKE_CXX_STANDARD 17)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17")
     if(NOT WIN32)
