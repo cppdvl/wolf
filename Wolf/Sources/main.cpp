@@ -67,30 +67,40 @@ public:
     } shaderInfo;
 
 };
-using ORD = ObjectRenderingData;
-class FW_VAO_ORD : public Wolf::FlyWeight::Data<unsigned int, ORD>{
+using OBJ = ObjectRenderingData;
+class FW_VAO_OBJ : public Wolf::FlyWeight::Data<unsigned int, OBJ>{
     public:
-        explicit FW_VAO_ORD() = default;
-        explicit FW_VAO_ORD(const FW_VAO_ORD&) = default;
-        explicit FW_VAO_ORD(FW_VAO_ORD&&) = default;
+        explicit FW_VAO_OBJ() = default;
+        explicit FW_VAO_OBJ(const FW_VAO_OBJ&) = default;
+        explicit FW_VAO_OBJ(FW_VAO_OBJ&&) = default;
 
 };
-class FW_SHADER_VAO : public Wolf::FlyWeight::Data<unsigned int, FW_VAO_ORD>{
+using FW_VVAO_OBJ = std::vector<FW_VAO_OBJ>;
+class FW_SHADER_VVAO_OBJ : public Wolf::FlyWeight::Data<unsigned int, std::vector<FW_VAO_OBJ>>{
     public:
-        explicit FW_SHADER_VAO() = default;
-        explicit FW_SHADER_VAO(const unsigned int& uiShaderProgram) : Wolf::FlyWeight::Data<unsigned int, FW_VAO_ORD>(uiShaderProgram){}
-        explicit FW_SHADER_VAO(const FW_SHADER_VAO&) = delete;
-        explicit FW_SHADER_VAO(FW_SHADER_VAO&&) = delete;
+        explicit FW_SHADER_VVAO_OBJ() = default;
+        explicit FW_SHADER_VVAO_OBJ(const unsigned int& uiShaderProgram) : Wolf::FlyWeight::Data<unsigned int, std::vector<FW_VAO_OBJ>>(uiShaderProgram){}
+        explicit FW_SHADER_VVAO_OBJ(const FW_SHADER_VVAO_OBJ&) = delete;
+        explicit FW_SHADER_VVAO_OBJ(FW_SHADER_VVAO_OBJ&&) = delete;
               
 };
 
 class WolfRenderingData {
 
-    FW_SHADER_VAO fwShaderVao{0};
+    FW_SHADER_VVAO_OBJ fwShader__fwVao_Obj{0};
 public:
-    explicit WolfRenderingData(const unsigned int& uiShaderProgram) : fwShaderVao(uiShaderProgram){
-    
+    explicit WolfRenderingData(const unsigned int& uiShaderProgram) : fwShader__fwVao_Obj(uiShaderProgram){
+
     }
+    void PushVaoVector(const std::vector<unsigned int>& vuiVAO){
+        for(auto& vao : vuiVAO) {
+
+            //auto& fw_vao_obj = fwShader__fwVao_Obj.PushElement(FW_VAO_OBJ());
+            //fw_vao_obj.CreateElementAndPush();
+
+        }
+    }
+
 };
 
 
@@ -245,6 +255,13 @@ int main()
     guiText = blinn ? blinnString.data() : phongString.data();
     int colSelector{5};
     int rowSelector{13};
+
+
+    // Wolf Renderer 
+    auto wrd = WolfRenderingData(shader.ID);
+    /*for (auto& vao : fuhrerCubeVAO){
+        wrd.PushElement(FW_VAO_OBJ(vao));
+    }*/
 
     // render loop
     // -----------
