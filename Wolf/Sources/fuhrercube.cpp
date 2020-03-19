@@ -22,7 +22,7 @@ void fuhrerCube(
     std::vector<std::map<std::string, glm::vec3>>& matdictionaryvector,
     std::vector<std::string>& texturenamevector){    
     
-    Wolf::_3DFormats::OBJFileParser objdata("fuhrercube.obj");
+    Wolf::_3DFormats::OBJFileParser objdata("Objects/wolf/fuhrercube.obj");
     objdata.Serialize();
     
     auto geometryData = objdata.DumpCodeVectorMap("Cube");    
@@ -32,7 +32,7 @@ void fuhrerCube(
         std::cout << std::endl << "Generating OpenGl vao's and vbo's for shader:" << p << std::endl;
         auto dataVector = objdata.DumpCodeVector("Cube", p);
         auto dataVectorPtr = dataVector.data();
-        auto matInfo = objdata.DumpMaterialInformation("fuhrercube.mtl",p);
+        auto matInfo = objdata.DumpMaterialInformation("Objects/wolf/fuhrercube.mtl",p);
         
         auto materialDictionary = std::map<std::string, glm::vec3>{
             std::make_pair("kd", matInfo.kd),

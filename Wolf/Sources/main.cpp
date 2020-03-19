@@ -9,11 +9,9 @@
 #include <wolf/pttrns/flyweight.hpp>
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
-
 #include <imgui.h>  
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <filesystem.hpp>
 
 #include <shader_m.hpp>
 #include <camera.hpp>
@@ -236,8 +234,10 @@ int main()
 
     // load textures
     // -------------
-    unsigned int floorTexture = loadTexture(FileSystem::getPath("Resources/Textures/wood.png").c_str());
-    unsigned int fuhrerTexture = loadTexture(FileSystem::getPath("Resources/Textures/Atlases/wolf/walls.png").c_str(), 1);
+    auto woodPath = std::filesystem::absolute("Textures/wood.png").string();
+    unsigned int floorTexture = loadTexture(woodPath.c_str());
+    auto wallsPath = std::filesystem::absolute("Textures/Atlases/wolf/walls.png").string();
+    unsigned int fuhrerTexture = loadTexture(wallsPath.c_str(), 1);
     std::cout << "Fuhrer Texture: " << fuhrerTexture << std::endl;
     // shader configuration
     // --------------------
