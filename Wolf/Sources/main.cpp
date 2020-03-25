@@ -13,7 +13,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-#include <shader_m.hpp>
+#include <wolf/renderer/shader.hpp>
 #include <camera.hpp>
 #include <stb_image.h>
 
@@ -180,7 +180,7 @@ int main()
 
     // build and compile shaders
     // -------------------------
-    Shader shader("lighting.vs", "wavefront.fs");
+    Wolf::Renderer::Shader shader("lighting.vs", "wavefront.fs");
 
     // plane & fuhrer
     // -------------------------
