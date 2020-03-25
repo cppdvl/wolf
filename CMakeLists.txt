@@ -70,7 +70,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
                     Wolf/Headers/Utils/  
                     Wolf/Vendor/glad/include/
                     Wolf/Vendor/glfw/include/
-                    Wolf/Vendor/glm/
+                    Wolf/Vendor/wolfengine/Vendor/glm/
                     Wolf/Vendor/stb/
                     Wolf/Vendor/imgui/
                     Wolf/Vendor/imgui/examples
