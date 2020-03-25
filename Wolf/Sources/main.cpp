@@ -5,8 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <wolf/maputils.hpp>
-#include <wolf/pttrns/flyweight.hpp>
+#include <wolf/utils/maputils.hpp>
+#include <wolf/renderer/renderer.hpp>
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
 #include <imgui.h>  
@@ -66,40 +66,7 @@ public:
 
 };
 using OBJ = ObjectRenderingData;
-class FW_VAO_OBJ : public Wolf::FlyWeight::Data<unsigned int, OBJ>{
-    public:
-        explicit FW_VAO_OBJ() = default;
-        explicit FW_VAO_OBJ(const FW_VAO_OBJ&) = default;
-        explicit FW_VAO_OBJ(FW_VAO_OBJ&&) = default;
 
-};
-using FW_VVAO_OBJ = std::vector<FW_VAO_OBJ>;
-class FW_SHADER_VVAO_OBJ : public Wolf::FlyWeight::Data<unsigned int, std::vector<FW_VAO_OBJ>>{
-    public:
-        explicit FW_SHADER_VVAO_OBJ() = default;
-        explicit FW_SHADER_VVAO_OBJ(const unsigned int& uiShaderProgram) : Wolf::FlyWeight::Data<unsigned int, std::vector<FW_VAO_OBJ>>(uiShaderProgram){}
-        explicit FW_SHADER_VVAO_OBJ(const FW_SHADER_VVAO_OBJ&) = delete;
-        explicit FW_SHADER_VVAO_OBJ(FW_SHADER_VVAO_OBJ&&) = delete;
-              
-};
-
-class WolfRenderingData {
-
-    FW_SHADER_VVAO_OBJ fwShader__fwVao_Obj{0};
-public:
-    explicit WolfRenderingData(const unsigned int& uiShaderProgram) : fwShader__fwVao_Obj(uiShaderProgram){
-
-    }
-    void PushVaoVector(const std::vector<unsigned int>& vuiVAO){
-        for(auto& vao : vuiVAO) {
-
-            //auto& fw_vao_obj = fwShader__fwVao_Obj.PushElement(FW_VAO_OBJ());
-            //fw_vao_obj.CreateElementAndPush();
-
-        }
-    }
-
-};
 
 
 // opengl GLSL version
@@ -257,12 +224,7 @@ int main()
     int rowSelector{13};
 
 
-    // Wolf Renderer 
-    auto wrd = WolfRenderingData(shader.ID);
-    /*for (auto& vao : fuhrerCubeVAO){
-        wrd.PushElement(FW_VAO_OBJ(vao));
-    }*/
-
+    
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))

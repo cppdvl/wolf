@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include <glad/glad.h>
-#include <wolf/maputils.hpp>
+#include <wolf/utils/maputils.hpp>
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
 #include <glm/glm.hpp>
