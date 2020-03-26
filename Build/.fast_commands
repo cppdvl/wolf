@@ -1,0 +1,3 @@
+#!/bin/bash
+alias smlcmp='make -j && cd Wolf && ./Wolf && cd ..'
+alias fllcmp='git clean -fdx && cmake .. && smlcmp'
