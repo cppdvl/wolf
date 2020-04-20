@@ -7,6 +7,7 @@
 
 #include <wolf/utils/maputils.hpp>
 #include <wolf/renderer/renderer.hpp>
+#include <wolf/renderer/instance.hpp>
 #include <wolf/import/_3dformats/objfileparser.hpp>
 
 #include <imgui.h>  
@@ -14,7 +15,7 @@
 #include <imgui_impl_opengl3.h>
 
 #include <wolf/renderer/shader.hpp>
-#include <camera.hpp>
+#include <wolf/renderer/camera.hpp>
 #include <stb_image.h>
 
 
@@ -39,33 +40,6 @@ int window_size [2] = {1280, 720};
 // Wolf Renderer
 std::vector <unsigned int> foo {1,2,3};
 
-class ObjectRenderingData {
-public:
-    ObjectRenderingData( ) = default;
-    ObjectRenderingData( const ObjectRenderingData& other) = default;
-    ObjectRenderingData( ObjectRenderingData&& other){
-        tMat = other.tMat;
-        shaderInfo = other.shaderInfo;
-        other = ObjectRenderingData();
-    }
-    ObjectRenderingData& operator=(const ObjectRenderingData& other){
-        tMat = other.tMat;
-        shaderInfo = other.shaderInfo;
-        return *this;
-    }
-    glm::mat4 tMat{1.0f};
-    struct {
-
-        float textureFactor {1.0f};
-        int colselector_x{5};
-        int colselector_y{3};
-        float sprite_texture_width{0.166666666};
-        float sprite_texture_height{0.0526315};
-
-    } shaderInfo;
-
-};
-using OBJ = ObjectRenderingData;
 
 
 
@@ -198,7 +172,20 @@ int main()
     }
 
     //  auto rndr = WolfRenderer(shader.ID,fuhrerCubeVAO);
+    auto shdrdomain = Wolf::Renderer::ShaderDomain<Wolf::Renderer::Shader, Wolf::Renderer::Instance<glm::vec4>>{shader};
 
+    auto fwCube = Wolf::Renderer::FWVAO_T<Wolf::Renderer::Instance<glm::vec4>>{fuhrerCubeVAO};
+    auto anObject = Wolf::Renderer::Instance<glm::vec4>();
+    anObject.tMatrix = glm::vec4{1.0f};
+    fwCube.push_back(anObject);
+
+    auto fwFloor = Wolf::Renderer::FWVAO_T<Wolf::Renderer::Instance<glm::vec4>>{planeVAO};
+    auto anotherObject = Wolf::Renderer::Instance<glm::vec4>();
+    anotherObject.tMatrix = glm::vec4{1.0f};
+    fwFloor.push_back(anotherObject);
+
+
+    
     // load textures
     // -------------
     auto woodPath = std::filesystem::absolute("Textures/wood.png").string();
@@ -263,18 +250,19 @@ int main()
 
         
         // draw objects
-        shader.use();
+        auto shdrPtr = shdrdomain.CommonDataPtr();
+        shdrPtr->use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        shader.setMat4("projection", projection);
-        shader.setMat4("view", view);
+        shdrPtr->setMat4("projection", projection);
+        shdrPtr->setMat4("view", view);
         // set light uniforms
-        shader.setVec3("viewPos", camera.Position);
+        shdrPtr->setVec3("viewPos", camera.Position);
 
-        shader.setVec3("lightPos", lightPos);
-        shader.setBool("useLight", useLight);
+        shdrPtr->setVec3("lightPos", lightPos);
+        shdrPtr->setBool("useLight", useLight);
 
-        shader.setBool("blinn", blinn);
+        shdrPtr->setBool("blinn", blinn);
 
         // floor
 
@@ -286,7 +274,6 @@ int main()
 
         glBindVertexArray(planeVAO);
         shader.setFloat("textureFactor", 1.0f);
-
         shader.setInt("colselector_x", 0);
         shader.setInt("colselector_y", 0);
         shader.setFloat("sprite_texture_width", 1.0f);
@@ -304,13 +291,13 @@ int main()
 
             glBindVertexArray(vao);
             auto k_d = fuhrerCubeMaterial[fuhrerCubeIndx]["kd"];
-            shader.setVec3("kd", k_d);
-            shader.setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
+            shdrPtr->setVec3("kd", k_d);
+            shdrPtr->setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
 
-            shader.setInt("colselector_x", colSelector);
-            shader.setInt("colselector_y", rowSelector);
-            shader.setFloat("sprite_texture_width", 0.166666666);
-            shader.setFloat("sprite_texture_height", 0.0526315);
+            shdrPtr->setInt("colselector_x", colSelector);
+            shdrPtr->setInt("colselector_y", rowSelector);
+            shdrPtr->setFloat("sprite_texture_width", 0.166666666);
+            shdrPtr->setFloat("sprite_texture_height", 0.0526315);
 
             
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
