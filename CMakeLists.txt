@@ -66,6 +66,7 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST})
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
+                    /usr/local/include
                     Wolf/Headers/
                     Wolf/Headers/Utils/  
                     Wolf/Vendor/glad/include/

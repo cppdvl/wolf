@@ -8,7 +8,6 @@
 #include <wolf/utils/maputils.hpp>
 #include <wolf/renderer/renderer.hpp>
 #include <wolf/renderer/instance.hpp>
-#include <wolf/import/_3dformats/objfileparser.hpp>
 
 #include <imgui.h>  
 #include <imgui_impl_glfw.h>
@@ -184,6 +183,8 @@ int main()
     anotherObject.tMatrix = glm::vec4{1.0f};
     fwFloor.push_back(anotherObject);
 
+    shdrdomain.push_back(fwCube);
+    shdrdomain.push_back(fwFloor);
 
     
     // load textures
@@ -272,6 +273,37 @@ int main()
         //auto fuhrerCubeVboPtr = fuhrerCubeVBO.data();
         auto fuhrerCubeVertexCountPtr = fuhrerCubeVertexCount.data();
 
+        for (auto& fwvao : shdrdomain){
+
+            for (auto& vao : fwvao.commonData) {
+
+                glBindVertexArray(vao);
+
+                for (auto& instance : fwvao){
+
+                    if (vao == planeVAO){
+
+                        shader.setFloat("textureFactor", 1.0f);
+                        shader.setInt("colselector_x", 0);
+                        shader.setInt("colselector_y", 0);
+                        shader.setFloat("sprite_texture_width", 1.0f);
+                        shader.setFloat("sprite_texture_height", 1.0f);
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, floorTexture);
+                        glDrawArrays(GL_TRIANGLES, 0, 6);
+                        glBindTexture(GL_TEXTURE_2D, fuhrerTexture);
+
+                    } else {
+
+
+                    }
+
+                }
+
+            }
+
+        }
+        /*
         glBindVertexArray(planeVAO);
         shader.setFloat("textureFactor", 1.0f);
         shader.setInt("colselector_x", 0);
@@ -284,6 +316,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindTexture(GL_TEXTURE_2D, fuhrerTexture);
+        */
         for (auto fuhrerCubeIndx = static_cast<decltype(fuhrerCubeVaoCount)>(0); fuhrerCubeIndx < fuhrerCubeVaoCount; ++fuhrerCubeIndx){
             
             auto vao = fuhrerCubeVaoPtr[fuhrerCubeIndx];
