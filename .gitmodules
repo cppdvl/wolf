@@ -22,3 +22,6 @@
 	path = Wolf/Vendor/wolfengine
 	url = git@github.com:cppdvl/wolfimporter.git
     branch = master
+[submodule "Wolf/Vendor/editor/cpplocate"]
+	path = Wolf/Vendor/editor/cpplocate
+	url = git@github.com:cginternals/cpplocate.git
