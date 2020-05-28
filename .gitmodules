@@ -14,10 +14,6 @@
 	path = Wolf/Vendor/bullet
     url = https://github.com/bulletphysics/bullet3.git
     branch = master
-[submodule "Glitter/Vendor/imgui"]
-	path = Wolf/Vendor/imgui
-	url = git@github.com:ocornut/imgui.git
-    branch = master
 [submodule "Glitter/Vendor/wolfengine"]
 	path = Wolf/Vendor/wolfengine
 	url = git@github.com:cppdvl/wolfimporter.git
