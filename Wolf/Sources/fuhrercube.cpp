@@ -10,7 +10,7 @@
 
 #include <glad/glad.h>
 #include <wolf/utils/maputils.hpp>
-#include <wolf/file/file.hpp>
+#include <wolf/utils/filesystemutils.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -28,18 +28,18 @@ void fuhrerCube(
     
     auto fuhrerJson = json{};
     auto fuhrerData = std::vector<float>{};
-    auto fuhrerCubeFile = Wolf::File("Objects/wolf/fuhrercube.obj");
-    if (!fuhrerCubeFile.Valid())exit(-1);
-    auto [fuhrerCubeJson, fuhrerCubeData] = Wolf::OBJParser(fuhrerCubeFile).Serialize();
+    auto fuhrerCubeFile = Wolf::FileSystemUtils::open("Objects/wolf/fuhrercube.obj");
+    //if (!fuhrerCubeFile.Valid())exit(-1);
+    //auto [fuhrerCubeJson, fuhrerCubeData] = Wolf::OBJParser(fuhrerCubeFile).Serialize();
 
 
-    Wolf::_3DFormats::OBJFileParser objdata("Objects/wolf/fuhrercube.obj");
-    objdata.Serialize();
+    //Wolf::_3DFormats::OBJFileParser objdata("Objects/wolf/fuhrercube.obj");
+    //objdata.Serialize();
     
-    auto geometryData = objdata.DumpCodeVectorMap("Cube");    
-    auto geometryDataKeys = Wolf::MapUtils::keys(geometryData);
-    std::for_each(geometryDataKeys.begin(), geometryDataKeys.end(),
-    [&](auto&p){
+    //auto geometryData = objdata.DumpCodeVectorMap("Cube");    
+    //auto geometryDataKeys = Wolf::MapUtils::keys(geometryData);
+    //std::for_each(geometryDataKeys.begin(), geometryDataKeys.end(),
+    /*[&](auto&p){
         std::cout << std::endl << "Generating OpenGl vao's and vbo's for material: " << p << std::endl;
         auto dataVector = objdata.DumpCodeVector("Cube", p);
         auto dataVectorPtr = dataVector.data();
@@ -92,6 +92,6 @@ void fuhrerCube(
         vbovector.push_back(vbo);
         vertexcount.push_back(nvertices);
     } 
-    );
+    );*/
 
 }

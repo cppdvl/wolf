@@ -17,21 +17,13 @@ set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 configure_file(Wolf/Headers/Utils/filesystem.hpp.in ${CMAKE_SOURCE_DIR}/Wolf/Headers/Utils/filesystem.hpp)
 
-file(GLOB           VENDORS_SOURCES Wolf/Vendor/glad/src/glad.c)
-file(GLOB           GUIIMPL_SOURCES Wolf/Vendor/imgui/examples/imgui_impl_glfw.*
-                                    Wolf/Vendor/imgui/examples/imgui_impl_opengl3.*
-                                    Wolf/Vendor/imgui/*.h
-                                    Wolf/Vendor/imgui/imgui.cpp
-                                    Wolf/Vendor/imgui/imgui_draw.cpp
-                                    Wolf/Vendor/imgui/imgui_widgets.cpp)
-
 message(STATUS ${GUIIMPL_SOURCES})
 foreach(GUISOURCES ${GUIIMPL_SOURCES})
     message(STATUS "Gui Resource: ${GUISOURCES}")
 endforeach()
 
 file(GLOB_RECURSE   PROJECT_HEADERS Wolf/Headers/*.hpp)
-file(GLOB           PROJECT_SOURCES Wolf/Sources/*.cpp)
+file(GLOB           PROJECT_SOURCES Wolf/Sources/main.cpp)
 file(GLOB           PROJECT_SHADERS Wolf/Shaders/*.comp
                                     Wolf/Shaders/*.frag
                                     Wolf/Shaders/*.geom
@@ -56,7 +48,8 @@ add_definitions(-DGLFW_INCLUDE_NONE
                 )
 list(APPEND FULL_SOURCES_LIST ${PROJECT_SOURCES} ${PROJECT_HEADERS}
                                ${PROJECT_SHADERS} ${PROJECT_CONFIGS}
-                               ${VENDORS_SOURCES} ${GUIIMPL_SOURCES})
+                               )
+
 message(STATUS "Full sources list: ")
 foreach(FULL_SOURCES_LIST_ELEM IN LISTS FULL_SOURCES_LIST)
     message(STATUS "Resource: ${FULL_SOURCES_LIST_ELEM}")
@@ -69,12 +62,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
                     /usr/local/include
                     Wolf/Headers/
                     Wolf/Headers/Utils/  
-                    Wolf/Vendor/glad/include/
-                    Wolf/Vendor/glfw/include/
                     Wolf/Vendor/wolfengine/Vendor/glm/
+                    Wolf/Vendor/wolfengine/Vendor/glad/include
+                    Wolf/Vendor/wolfengine/Vendor/gui                    
                     Wolf/Vendor/stb/
-                    Wolf/Vendor/imgui/
-                    Wolf/Vendor/imgui/examples
                     Wolf/Vendor/wolfengine/include)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw

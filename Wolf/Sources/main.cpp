@@ -1,17 +1,15 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <wolf/glfw/glfw.hpp>
 #include <wolf/utils/maputils.hpp>
 #include <wolf/renderer/renderer.hpp>
 #include <wolf/renderer/instance.hpp>
 
-#include <imgui.h>  
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 
 #include <wolf/renderer/shader.hpp>
 #include <wolf/renderer/camera.hpp>
@@ -76,14 +74,14 @@ float lastFrame = 0.0f;
 bool guiMode = false;
 bool guiModeKeyPressed = false;
 
-void killPrimitivePlane(unsigned int&, unsigned int&);
-void primitivePlane(unsigned int&, unsigned int&); 
-void fuhrerCube(
+//void killPrimitivePlane(unsigned int&, unsigned int&);
+//void primitivePlane(unsigned int&, unsigned int&); 
+/*void fuhrerCube(
     std::vector<unsigned int>&vaovector, 
     std::vector<unsigned int>&vbovector, 
     std::vector<unsigned int>&vertexcount,
     std::vector<std::map<std::string, glm::vec3>>& matdictionaryvector,
-    std::vector<std::string>& texturenamevector);
+    std::vector<std::string>& texturenamevector);*/
 
 std::vector<unsigned int> fuhrerCubeVAO{};
 std::vector<unsigned int> fuhrerCubeVBO{};
@@ -104,42 +102,21 @@ void drawGuiExtended(
 void renderGui();
 void renderGuiOpenGL();
 int main()
-{
-    // glfw: initialize and configure
-    // ------------------------------
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+{   
+    auto glfwConfiguration = Wolf::OGLUtil::GLFWInitConfiguration{};
+    auto pWindow = Wolf::OGLUtil::GLFWInit(glfwConfiguration);
+    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    //glfwSetCursorPosCallback(window, mouse_callback);
+    //glfwSetScrollCallback(window, scroll_callback);
 
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
-#endif
-
-    // glfw window creation
-    // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
+    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    //{
+    //    std::cout << "Failed to initialize GLAD" << std::endl;
+    //    return -1;
+    //}
 
     // configure global opengl state
     // -----------------------------
@@ -148,43 +125,43 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Setup Dear ImGui Context: tell whos the window (GLFW) and what's the GLSL version.
-    setupGuiContext(window, "#version 330");
+    setupGuiContext(pWindow, "#version 330");
 
-
-    // build and compile shaders
+    // @TODO: This should be gone for good. This must initialize from a specific Json File. 
+    // build and compile shaders:
     // -------------------------
     Wolf::Renderer::Shader shader("lighting.vs", "wavefront.fs");
 
-    // plane & fuhrer
+    // TODO: This should be done by a load scene function.
     // -------------------------
     unsigned int planeVAO, planeVBO;
-    primitivePlane(planeVAO, planeVBO);
+    /*primitivePlane(planeVAO, planeVBO);
     fuhrerCube(
         fuhrerCubeVAO, 
         fuhrerCubeVBO, 
         fuhrerCubeVertexCount, 
         fuhrerCubeMaterial, 
-        fuhrerCubeTextures);
+        fuhrerCubeTextures);*/
 
-    for (auto&fct : fuhrerCubeTextures) {
+    /*for (auto&fct : fuhrerCubeTextures) {
         std::cout << " Texture: " << (fct.empty()?"none" : fct) << std::endl;
-    }
+    }*/
 
-    //  auto rndr = WolfRenderer(shader.ID,fuhrerCubeVAO);
+    //auto rndr = WolfRenderer(shader.ID,fuhrerCubeVAO);
     auto shdrdomain = Wolf::Renderer::ShaderDomain<Wolf::Renderer::Shader, Wolf::Renderer::Instance<glm::vec4>>{shader};
 
-    auto fwCube = Wolf::Renderer::FWVAO_T<Wolf::Renderer::Instance<glm::vec4>>{fuhrerCubeVAO};
-    auto anObject = Wolf::Renderer::Instance<glm::vec4>();
-    anObject.tMatrix = glm::vec4{1.0f};
-    fwCube.push_back(anObject);
+    //auto fwCube = Wolf::Renderer::FWVAO_T<Wolf::Renderer::Instance<glm::vec4>>{fuhrerCubeVAO};
+    //auto anObject = Wolf::Renderer::Instance<glm::vec4>();
+    //anObject.tMatrix = glm::vec4{1.0f};
+    //fwCube.push_back(anObject);
 
-    auto fwFloor = Wolf::Renderer::FWVAO_T<Wolf::Renderer::Instance<glm::vec4>>{planeVAO};
-    auto anotherObject = Wolf::Renderer::Instance<glm::vec4>();
-    anotherObject.tMatrix = glm::vec4{1.0f};
-    fwFloor.push_back(anotherObject);
+    //auto fwFloor = Wolf::Renderer::FWVAO_T<Wolf::Renderer::Instance<glm::vec4>>{planeVAO};
+    //auto anotherObject = Wolf::Renderer::Instance<glm::vec4>();
+    //anotherObject.tMatrix = glm::vec4{1.0f};
+    //fwFloor.push_back(anotherObject);
 
-    shdrdomain.push_back(fwCube);
-    shdrdomain.push_back(fwFloor);
+    //shdrdomain.push_back(fwCube);
+    //shdrdomain.push_back(fwFloor);
 
     
     // load textures
@@ -205,7 +182,7 @@ int main()
 
     // Clear Color in the GUI
     // ----------------------
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool useLight{true};
     guiText = blinn ? blinnString.data() : phongString.data();
     int colSelector{5};
@@ -215,7 +192,8 @@ int main()
     
     // render loop
     // -----------
-    while (!glfwWindowShouldClose(window))
+    
+    while (!glfwWindowShouldClose(pWindow))
     {
         // per-frame time logic
         // --------------------
@@ -225,14 +203,14 @@ int main()
 
         // input
         // -----
-        processInput(window);
+        processInput(pWindow);
 
         
         // gui
         // -----
         
-        drawGui();
-        drawGuiExtended(
+        //drawGui();
+        /*drawGuiExtended(
             guiText,
             &useLight,
             (float*)&clear_color,
@@ -241,29 +219,29 @@ int main()
             cursorPos,
             window_size
             );
-        renderGui();
+        renderGui();*/
 
         
         // render
         // ------
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+        //glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         
         // draw objects
-        auto shdrPtr = shdrdomain.CommonDataPtr();
-        shdrPtr->use();
+        //auto shdrPtr = shdrdomain.CommonDataPtr();
+        //shdrPtr->use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        shdrPtr->setMat4("projection", projection);
-        shdrPtr->setMat4("view", view);
+        //shdrPtr->setMat4("projection", projection);
+        //shdrPtr->setMat4("view", view);
         // set light uniforms
-        shdrPtr->setVec3("viewPos", camera.Position);
+        //shdrPtr->setVec3("viewPos", camera.Position);
 
-        shdrPtr->setVec3("lightPos", lightPos);
-        shdrPtr->setBool("useLight", useLight);
+        //shdrPtr->setVec3("lightPos", lightPos);
+        //shdrPtr->setBool("useLight", useLight);
 
-        shdrPtr->setBool("blinn", blinn);
+        //shdrPtr->setBool("blinn", blinn);
 
         // floor
 
@@ -273,9 +251,9 @@ int main()
         //auto fuhrerCubeVboPtr = fuhrerCubeVBO.data();
         auto fuhrerCubeVertexCountPtr = fuhrerCubeVertexCount.data();
 
-        for (auto& fwvao : shdrdomain){
+        //for (auto& fwvao : shdrdomain){
 
-            for (auto& vao : fwvao.commonData) {
+            /*for (auto& vao : fwvao.commonData) {
 
                 glBindVertexArray(vao);
 
@@ -300,9 +278,9 @@ int main()
 
                 }
 
-            }
+            }*/
 
-        }
+        //}
         /*
         glBindVertexArray(planeVAO);
         shader.setFloat("textureFactor", 1.0f);
@@ -324,13 +302,13 @@ int main()
 
             glBindVertexArray(vao);
             auto k_d = fuhrerCubeMaterial[fuhrerCubeIndx]["kd"];
-            shdrPtr->setVec3("kd", k_d);
-            shdrPtr->setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
+            //shdrPtr->setVec3("kd", k_d);
+            //shdrPtr->setFloat("textureFactor", fuhrerCubeTextures[fuhrerCubeIndx].empty() ? 0.0f : 1.0f);
 
-            shdrPtr->setInt("colselector_x", colSelector);
-            shdrPtr->setInt("colselector_y", rowSelector);
-            shdrPtr->setFloat("sprite_texture_width", 0.166666666);
-            shdrPtr->setFloat("sprite_texture_height", 0.0526315);
+            //shdrPtr->setInt("colselector_x", colSelector);
+            //shdrPtr->setInt("colselector_y", rowSelector);
+            //shdrPtr->setFloat("sprite_texture_width", 0.166666666);
+            //shdrPtr->setFloat("sprite_texture_height", 0.0526315);
 
             
             glDrawArrays(GL_TRIANGLES, 0, vertexCount);
@@ -343,11 +321,11 @@ int main()
         renderGuiOpenGL();
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(pWindow);
         glfwPollEvents();
     }
 
-    killPrimitivePlane(planeVAO, planeVBO);
+    //killPrimitivePlane(planeVAO, planeVBO);
     glfwTerminate();
     return 0;
 }
