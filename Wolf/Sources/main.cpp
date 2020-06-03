@@ -103,8 +103,12 @@ void renderGui();
 void renderGuiOpenGL();
 int main()
 {   
-    auto glfwConfiguration = Wolf::OGLUtil::GLFWInitConfiguration{};
-    auto pWindow = Wolf::OGLUtil::GLFWInit(glfwConfiguration);
+    auto glfwInitConfiguration = Wolf::OGLUtil::GLFWInitConfiguration{};
+    Wolf::OGLUtil::GLFWInit(glfwInitConfiguration);
+
+    auto glfwWindowConfiguration = Wolf::OGLUtil::GLFWWindowConfiguration{};
+    auto pWindow = Wolf::OGLUtil::GLFWCreateWindow(glfwWindowConfiguration);
+
     //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     //glfwSetCursorPosCallback(window, mouse_callback);
     //glfwSetScrollCallback(window, scroll_callback);
@@ -120,9 +124,9 @@ int main()
 
     // configure global opengl state
     // -----------------------------
-    glEnable(GL_DEPTH_TEST);
+    /*glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
     // Setup Dear ImGui Context: tell whos the window (GLFW) and what's the GLSL version.
     setupGuiContext(pWindow, "#version 330");
