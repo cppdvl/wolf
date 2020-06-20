@@ -1,23 +1,19 @@
 [submodule "Glitter/Vendor/glad"]
-	path = Wolf/Vendor/glad
+    path = Wolf/Vendor/glad
     url = https://github.com/Dav1dde/glad.git
     branch = c
-[submodule "Glitter/Vendor/glfw"]
-	path = Wolf/Vendor/glfw
-    url = https://github.com/glfw/glfw.git
-    branch = master
 [submodule "Glitter/Vendor/stb"]
-	path = Wolf/Vendor/stb
+    path = Wolf/Vendor/stb
     url = https://github.com/nothings/stb.git
     branch = master
 [submodule "Glitter/Vendor/bullet"]
-	path = Wolf/Vendor/bullet
+    path = Wolf/Vendor/bullet
     url = https://github.com/bulletphysics/bullet3.git
     branch = master
 [submodule "Glitter/Vendor/wolfengine"]
-	path = Wolf/Vendor/wolfengine
-	url = git@github.com:cppdvl/wolfimporter.git
+    path = Wolf/Vendor/wolfengine
+    url = git@github.com:cppdvl/wolfimporter.git
     branch = master
 [submodule "Wolf/Vendor/editor/cpplocate"]
-	path = Wolf/Vendor/editor/cpplocate
-	url = git@github.com:cginternals/cpplocate.git
+    path = Wolf/Vendor/editor/cpplocate
+    url = git@github.com:cginternals/cpplocate.git
