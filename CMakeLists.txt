@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project(Wolf)
 message(STATUS " ._-= Project Name : ${PROJECT_NAME} =-_.")
-option(GLFW_BUILD_DOCS OFF)
-add_subdirectory(Wolf/Vendor/glfw)
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -39,11 +37,11 @@ source_group("Shaders" FILES ${PROJECT_SHADERS})
 source_group("Sources" FILES ${PROJECT_SOURCES})
 source_group("Vendors" FILES ${VENDORS_SOURCES})
 
-add_subdirectory(Wolf/Vendor/wolfengine/src)
+add_subdirectory(Wolf/Vendor/wolfengine)
+message (STATUS "WolfEngine Resources Path: ${ENGINE_RESOURCES_FULLPATH}")
 
 
-add_definitions(-DGLFW_INCLUDE_NONE
-                -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"
+add_definitions(-DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"
                 -DSTB_IMAGE_IMPLEMENTATION
                 )
 list(APPEND FULL_SOURCES_LIST ${PROJECT_SOURCES} ${PROJECT_HEADERS}
@@ -81,4 +79,9 @@ add_custom_command(
 add_custom_command(
     TARGET ${PROJECT_NAME} PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Wolf/Resources $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    DEPENDS ${PROJECT_SHADERS})
+    )
+add_custom_command(
+    TARGET ${PROJECT_NAME} PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Wolf/Vendor/wolfengine/Resources $<TARGET_FILE_DIR:${PROJECT_NAME}>/wolfengine/Resources
+    )
+
