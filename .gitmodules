@@ -6,14 +6,7 @@
     path = Wolf/Vendor/stb
     url = https://github.com/nothings/stb.git
     branch = master
-[submodule "Glitter/Vendor/bullet"]
-    path = Wolf/Vendor/bullet
-    url = https://github.com/bulletphysics/bullet3.git
-    branch = master
 [submodule "Glitter/Vendor/wolfengine"]
     path = Wolf/Vendor/wolfengine
     url = git@github.com:cppdvl/wolfimporter.git
     branch = master
-[submodule "Wolf/Vendor/editor/cpplocate"]
-    path = Wolf/Vendor/editor/cpplocate
-    url = git@github.com:cginternals/cpplocate.git
