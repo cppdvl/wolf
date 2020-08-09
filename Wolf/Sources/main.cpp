@@ -1,6 +1,6 @@
 #include <iostream>
 #include <wolf/engine/engine.hpp>
-#include <wolf/engine/resourcemanager.hpp>
+#include <wolf/engine/resources/resourcemanager.hpp>
 #include <wolf/import/resources/importer.hpp>
 
 
