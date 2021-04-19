@@ -3,7 +3,7 @@ project(Wolf)
 message(STATUS " ._-= Project Name : ${PROJECT_NAME} =-_.")
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /std:c++17")
     set(CMAKE_CXX_STANDARD 17)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -std=c++17")
@@ -55,19 +55,41 @@ endforeach()
 
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST})
+list (APPEND APPLICATION_HEADER_FOLDERS 
+    #[[Wolf/Headers/
+    Wolf/Headers/Utils/]]  
+    Wolf/Vendor/wolfengine/Vendor/glm
+    Wolf/Vendor/wolfengine/Vendor/glad/include
+    #[[Wolf/Vendor/wolfengine/Vendor/gui
+    Wolf/Vendor/stb/
+    Wolf/Vendor/wolfengine/include
+    Wolf/Headers/
+    Wolf/Headers/Utils/  
+    Wolf/Vendor/wolfengine/Vendor/glm/
+    Wolf/Vendor/wolfengine/Vendor/glad/include
+    Wolf/Vendor/wolfengine/Vendor/gui
+    Wolf/Vendor/stb/
+    Wolf/Vendor/wolfengine/include
+    ${json_INC_DIR}]])
 
-target_include_directories(${PROJECT_NAME} PRIVATE 
-                    /usr/local/include
-                    Wolf/Headers/
-                    Wolf/Headers/Utils/  
-                    Wolf/Vendor/wolfengine/Vendor/glm/
-                    Wolf/Vendor/wolfengine/Vendor/glad/include
-                    Wolf/Vendor/wolfengine/Vendor/gui                    
-                    Wolf/Vendor/stb/
-                    Wolf/Vendor/wolfengine/include)
+if (MSVC)
+else()
+    list (APPEND APPLICATION_HEADER_FOLDERS 
+        /usr/local/include
+    )
+endif()
+message(STATUS "App headers: ")
+foreach(APPLICATION_HEADER_FOLDERS_ELEM IN LISTS APPLICATION_HEADER_FOLDERS)
+    message(STATUS "Resource: ${APPLICATION_HEADER_FOLDERS_ELEM}")
+endforeach()
 
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${APPLICATION_HEADER_FOLDERS} 
+)
+message(STATUS "GLAD_LIBRARIES : ${GLAD_LIBRARIES}")
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw
-                      ${GLFW_LIBRARIES} ${GLAD_LIBRARIES}
+                      ${GLFW_LIBRARIES} 
+                      #${GLAD_LIBRARIES}
                         WolfImporter)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
