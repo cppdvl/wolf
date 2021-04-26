@@ -3,9 +3,13 @@
 #include <vector>
 #include <utility>
 #include <iostream>
-#include <spdlog/spdlog.h>
+#include <stb_image.h>
 #include <glm/glm.hpp>
+#include <spdlog/spdlog.h>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <wolf/renderer/shader.hpp>
+
 
 extern "C"{
 #include <glad/glad.h>
@@ -30,9 +34,12 @@ namespace DGE{
     };
 
     using iSize = glm::ivec2;
-    using iLocation = glm::ivec2;
-    using iViewport = std::pair<iLocation, iSize>;
+    using iLocation2 = glm::ivec2;
+    using iViewport = std::pair<iLocation2, iSize>;
     using fColor4 = glm::vec4;
+    using fColor3 = glm::vec3;
+    using fLocation = glm::vec3;
+    using xTextureID = unsigned int;
     /******************************************************************************************************************/
     /* -- Rendering Manager -- ************************************************************************************** */
     static std::once_flag sRenderCtxtUniqueInitialization{};
@@ -62,6 +69,7 @@ namespace DGE{
                 }
                 bIsStarted = true;
             });
+            glEnable(GL_DEPTH_TEST);
         }
         virtual void Shutdown() override {
 
@@ -99,7 +107,7 @@ namespace DGE{
             mRenderContext->Init();
         }
     public:
-        void SetBackgroundColor(DGE::fColor4 color4){
+        void SetBackgroundColor(DGE::fColor3 color4){
             // TODO: MOVE THE SPECIFIC FUNCTIONALITY OF THIS FUNCTION TO DGE::RenderContextOpenGL!!!!!!!!!!!
             glClearColor(color4.x, color4.y, color4.z, color4.z);
             glClear(GL_COLOR_BUFFER_BIT);
@@ -235,7 +243,7 @@ namespace DGE{
         }
 
     public:
-        IPlatform::WindowID SpawnWindow(DGE::iLocation& windowLocation, DGE::iSize& windowSize, std::string windowTitle, void(*frameBufferResizeCb)(void*, int, int) = DGE::sWindowResizeCallback){
+        IPlatform::WindowID SpawnWindow(DGE::iLocation2& windowLocation, DGE::iSize& windowSize, std::string windowTitle, void(*frameBufferResizeCb)(void*, int, int) = DGE::sWindowResizeCallback){
 
             auto windowID = mPlatform->CreatePlatformWindow(windowLocation.x, windowLocation.y, windowSize.x, windowSize.y, windowTitle.c_str());
             if (!windowID) {
@@ -289,10 +297,10 @@ namespace DGE{
     /** -- Camera Mouse/Keyboard -- **********************************************************************************/
     /* An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL out of keyboard and mouse movement.
      */
-    const float YAW         = -90.0f;
-    const float PITCH       =  0.0f;
-    const float ZOOM        =  45.0f;
-    class Camera
+    constexpr float DEFAULT_YAW         = -0.0f;
+    constexpr float DEFAULT_PITCH_      =  0.0f;    // The _ it's because there's another DEFAULT_PITCH var in GDI.h
+    constexpr float DEFAULT_ZOOM        =  45.0f;
+    class ICamera
     {
     public:
         enum class Camera_Movement {
@@ -306,18 +314,21 @@ namespace DGE{
         glm::vec3 Up;
         glm::vec3 Right;
         glm::vec3 WorldUp;
-        float Yaw;
-        float Pitch;
-        float Zoom;
+        float Yaw {DGE::DEFAULT_YAW};
+        float Pitch {DGE::DEFAULT_PITCH_};
+        float Zoom {DGE::DEFAULT_ZOOM};
+        float Fov {45.0f};
+        float AspectRatio {1.333333f};
+        float ZFar{100.0f};
+        float ZNear{0.1f};
 
-        Camera(
+        ICamera(
             glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
             glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
-            float yaw = DGE::YAW, 
-            float pitch = DGE::PITCH) 
+            float yaw = DGE::DEFAULT_YAW,
+            float pitch = DGE::DEFAULT_PITCH_)
         : 
-        Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-        Zoom(ZOOM)
+        Front(glm::vec3(0.0f, 0.0f, -1.0f))
         {
             Position = position;
             WorldUp = up;
@@ -325,7 +336,8 @@ namespace DGE{
             Pitch = pitch;
             updateCameraVectors();
         }
-        Camera(
+
+        ICamera(
             float posX, 
             float posY, 
             float posZ, 
@@ -335,8 +347,7 @@ namespace DGE{
             float yaw, 
             float pitch)
         : 
-        Front(glm::vec3(0.0f, 0.0f, -1.0f)),
-        Zoom(ZOOM)
+        Front(glm::vec3(0.0f, 0.0f, -1.0f))
         {
             Position = glm::vec3(posX, posY, posZ);
             WorldUp = glm::vec3(upX, upY, upZ);
@@ -347,6 +358,10 @@ namespace DGE{
         glm::mat4 GetViewMatrix()
         {
             return glm::lookAt(Position, Position + Front, Up);
+        }
+        glm::mat4 GetProjectionMatrix()
+        {
+            return glm::perspective(glm::radians(Fov), AspectRatio, ZNear, ZFar);
         }
 
     protected:
@@ -368,57 +383,57 @@ namespace DGE{
     
     const float MKBSPEED    =  2.5f;
     const float MSENSITIVITY =  0.1f;
-    class Camera_MouseKeyboard : public Camera
+    class Camera_MouseKeyboard : public ICamera
     {
     public:
         float MovementSpeed{ DGE::MKBSPEED };
         float MouseSensitivity{ DGE::MSENSITIVITY };
-        
-        Camera_MouseKeyboard(
-            glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), 
-            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), 
-            float yaw = YAW, 
-            float pitch = PITCH)
-        : 
-        Camera(position, up, yaw, pitch)
-        {
 
-        }
-        
         Camera_MouseKeyboard(
-            float posX, 
-            float posY, 
-            float posZ, 
-            float upX, 
-            float upY, 
-            float upZ, 
-            float yaw, 
-            float pitch) 
+            glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+            float yaw = DGE::DEFAULT_YAW,
+            float pitch = DGE::DEFAULT_PITCH_)
         :
-        Camera(posX, posY, posZ, upX, upY, upZ, yaw, pitch)
+        ICamera(position, up, yaw, pitch)
         {
 
         }
 
-        void ProcessKeyboard(DGE::Camera::Camera_Movement direction, float deltaTime)
+        Camera_MouseKeyboard(
+            float posX,
+            float posY,
+            float posZ,
+            float upX,
+            float upY,
+            float upZ,
+            float yaw,
+            float pitch)
+        :
+        ICamera(posX, posY, posZ, upX, upY, upZ, yaw, pitch)
         {
-            /* processes input received from any keyboard-like input system. 
-             * Accepts input parameter in the form of camera defined ENUM 
+
+        }
+
+        void ProcessKeyboard(DGE::ICamera::Camera_Movement direction, float deltaTime)
+        {
+            /* processes input received from any keyboard-like input system.
+             * Accepts input parameter in the form of camera defined ENUM
              * (to abstract it from windowing systems) */
             float displacement = MovementSpeed * deltaTime;
-            if (direction == DGE::Camera::Camera_Movement::FORWARD)
+            if (direction == DGE::ICamera::Camera_Movement::FORWARD)
                 Position += Front * displacement;
-            if (direction == DGE::Camera::Camera_Movement::BACKWARD)
+            if (direction == DGE::ICamera::Camera_Movement::BACKWARD)
                 Position -= Front * displacement;
-            if (direction == DGE::Camera::Camera_Movement::LEFT)
+            if (direction == DGE::ICamera::Camera_Movement::LEFT)
                 Position -= Right * displacement;
-            if (direction == DGE::Camera::Camera_Movement::RIGHT)
+            if (direction == DGE::ICamera::Camera_Movement::RIGHT)
                 Position += Right * displacement;
         }
 
         void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
         {
-            /* processes input received from a mouse input system. Expects the offset value in 
+            /* processes input received from a mouse input system. Expects the offset value in
              * both the x and y direction. */
             xoffset *= MouseSensitivity;
             yoffset *= MouseSensitivity;
@@ -439,120 +454,467 @@ namespace DGE{
 
         void ProcessMouseScroll(float yoffset)
         {
-            /* processes input received from a 
-             * mouse scroll-wheel event. Only 
-             * requires input on the vertical 
+            /* processes input received from a
+             * mouse scroll-wheel event. Only
+             * requires input on the vertical
              * wheel-axis */
             Zoom -= (float)yoffset;
             if (Zoom < 1.0f)
                 Zoom = 1.0f;
             if (Zoom > 45.0f)
-                Zoom = 45.0f; 
+                Zoom = 45.0f;
         }
 
     };
+    class Mesh {
+    protected:
+        unsigned int VBO;
+    public:
+        unsigned int VAO;
+    };
+    class MeshVertexNormalTextureTriangle : public Mesh {
+        std::vector <float> mMeshData {
+            -0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+             0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+             0.0f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f
+        };
+    public:
+        MeshVertexNormalTextureTriangle(){
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            glBindVertexArray(VAO);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mMeshData.size(), mMeshData.data(), GL_STATIC_DRAW);
 
-    class MeshTextureCube {
-        std::vector<float> mVertexData {
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+            //position attribute
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+            // normal attribute
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+            // texture coord attribute
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+        }
+    };
+    class MeshVertexNormalTextureCube {
+        std::vector<float> mMeshData {
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+             0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+             0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+             0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+             0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+             0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+             0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
         };
         unsigned int VBO;
     public:
         unsigned int VAO;
-        MeshTextureCube(){
+        MeshVertexNormalTextureCube(){
+
             glGenVertexArrays(1, &VAO);
             glGenBuffers(1, &VBO);
 
             glBindVertexArray(VAO);
 
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mVertexData.size(), mVertexData.data() , GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mMeshData.size(), mMeshData.data() , GL_STATIC_DRAW);
             // position attribute
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
             glEnableVertexAttribArray(0);
-            // texture coord attribute
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+            // normal attribute
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
             glEnableVertexAttribArray(1);
+            // texture coord attribute
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+            glEnableVertexAttribArray(2);
         }
     };
+
+    class Texture{
+    public:
+        DGE::xTextureID textureId{};
+        int mWidth, mHeight, mChannels;
+        Texture(char* texturePath){
+            glGenTextures(1, &textureId);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+
+            //Wrapping Parameters
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            //Filtering Parametes
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            auto pData = stbi_load(texturePath, &mWidth, &mHeight, &mChannels, 0);
+            if (!pData){
+                spdlog::critical("{:s}:{:d} -- Texture::Texture() stbi_load failed", __FILE__, __LINE__);
+                std::exit(-1);
+            }
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pData);
+            glGenerateMipmap(GL_TEXTURE_2D);
+
+            stbi_image_free(pData);
+
+        }
+    };
+
+    class Application {
+    public:
+
+    protected:
+        DGE::WindowManager& aWindowManagerRef{DGE::WindowManager::GetInstanceReference()};
+        DGE::RenderManager& aRenderManagerRef{DGE::RenderManager::GetInstanceReference()};
+
+        bool bInitialized {false};
+        virtual void Init() = 0; //Initialize Windows, Platform, Rendering etc.
+        virtual void Load() = 0; //Load Assets, Create Levels, Menus, Debug Dialogues etc.
+        virtual void MainLoop() = 0;  // BeforeStart(), GetInput(), Simulate(), Render(), AfterFinish().
+        virtual void ShutDown() = 0;  // Unload Assets, Levels, Dialogues etc.
+    public:
+        void Exec(){
+            Init();
+            if (!bInitialized) ShutDown();
+            Load();
+            if (!bInitialized) ShutDown();
+            MainLoop();
+            ShutDown();
+        }
+    };
+
 }
+
+class MyApplicationCube : public DGE::Application {
+
+    unsigned int aCubeMesh{};
+    DGE::ICamera aCamera{};
+    Wolf::Renderer::Shader* aShaderPtr{nullptr};
+    const DGE::fColor3 kGreen{0.203f, 0.921f, 0.658f};
+    const DGE::fLocation kLightPosition {3.0f, 3.0f, 3.0f};
+    bool bUsePhongShading {true};
+    glm::mat4 aBoxModel {glm::mat4(1.0f)};
+    DGE::IPlatform::WindowID windowID_0, windowID_1;
+protected:
+    void Init() override {
+
+        auto startWindowLocation_0 = DGE::iLocation2(100, 200);
+        auto startWindowLocation_1 = DGE::iLocation2(200, 100);
+        auto windowSize_0 = DGE::iSize(640, 480);
+        auto windowSize_1 = DGE::iSize(480, 640);
+        windowID_0 = aWindowManagerRef.SpawnWindow(startWindowLocation_0, windowSize_0, "I had the time of my life");
+        windowID_1 = aWindowManagerRef.SpawnWindow(startWindowLocation_1, windowSize_1, "The time of my life, I had");
+        bInitialized = true;
+
+    }
+    void Load() override {
+
+        //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
+        aCubeMesh = DGE::MeshVertexNormalTextureCube().VAO;
+        aCamera = static_cast<DGE::ICamera>(DGE::Camera_MouseKeyboard(DGE::fLocation(2.0f, 2.0f, 3.0f)));
+
+        //Create a Shader.
+        aShaderPtr = Wolf::Renderer::Shader::GetShaderByID(Wolf::Renderer::Shader("plain.vs", "plain.fs").ID);
+        if (!aShaderPtr){
+            bInitialized = false;
+            return;
+        }
+        aShaderPtr->setBool("blinn", bUsePhongShading);
+        aShaderPtr->setVec3("lightPos", kLightPosition);
+        aShaderPtr->setVec3("color", kGreen);
+
+
+    }
+    void MainLoop() override {
+        //Process
+        auto mWindow_1 = reinterpret_cast<GLFWwindow*>((void*)windowID_1);
+        while (glfwWindowShouldClose(mWindow_1) == false) {
+            if (glfwGetKey(mWindow_1, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+                glfwSetWindowShouldClose(mWindow_1, true);
+
+            aWindowManagerRef.GrabWindow(windowID_1);{
+                // Paint Background Fill Color & Update Window
+                aRenderManagerRef.SetBackgroundColor(DGE::fColor4(0.25f, 0.25f, 0.25f, 1.0f));
+                aWindowManagerRef.UpdateWindow(windowID_1);
+            }
+            aWindowManagerRef.GrabWindow(windowID_0);{
+                aRenderManagerRef.SetBackgroundColor(DGE::fColor4(73.0f / 255.0f, 139.0f / 255.0f, 245.0f / 255.0f, 1.0f));
+                //Select Shader to Use and Configure it.
+                aShaderPtr->use();
+                {
+                    //Execute Vertex Shader
+                    {
+                        //UPDATECAMERA()
+                        aShaderPtr->setMat4("projection", aCamera.GetProjectionMatrix());
+                        aShaderPtr->setMat4("view", aCamera.GetViewMatrix());
+                    }
+                    {
+                        //FOR EACH MODEL UPDATEMODEL()
+                        glBindVertexArray(aCubeMesh);
+                        //UPDATE MODEL()
+                        aShaderPtr->setMat4("model", aBoxModel);
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                    }
+                }
+                aShaderPtr->setVec3("viewPos", aCamera.Position);
+                aWindowManagerRef.UpdateWindow(windowID_0);
+            }
+            glfwPollEvents();
+        }
+
+    }
+    void ShutDown() override {
+        aWindowManagerRef.ShutdownWindow(windowID_0);
+        aWindowManagerRef.ShutdownWindow(windowID_1);
+    }
+
+
+
+};
+
+class MyAppplcationTriangle : public DGE::Application{
+
+    unsigned int SCR_WIDT{800};
+    unsigned int SCR_HGHT{600};
+    unsigned int aTriangleMesh{};
+    const DGE::fLocation kViewerPoistion {0.0f, 0.0f, 3.0f};
+    Wolf::Renderer::Shader* aShaderPtr{nullptr};
+    const DGE::fColor3 kGreen{0.203f, 0.921f, 0.658f};
+    const DGE::fLocation kLightPosition {3.0f, 3.0f, 3.0f};
+    bool bUsePhongShading {false};
+    DGE::IPlatform::WindowID windowID_0;
+
+    GLFWwindow*window;
+    unsigned int shaderProgram;
+    unsigned int VAO;
+protected:
+    static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+    {
+        // make sure the viewport matches the new window dimensions; note that width and
+        // height will be significantly larger than specified on retina displays.
+        glViewport(0, 0, width, height);
+    }
+    void Init() override{
+
+        /*auto startWindowLocation_0 = DGE::iLocation2(100, 200);
+        auto windowSize_0 = DGE::iSize(SCR_WIDT, SCR_HGHT);
+        windowID_0 = aWindowManagerRef.SpawnWindow(startWindowLocation_0, windowSize_0, "My Triangle Window 0");*/
+        bInitialized = true;
+        // glfw: initialize and configure
+        // ------------------------------
+        glfwInit();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+        // glfw window creation
+        // --------------------
+        window = glfwCreateWindow(SCR_WIDT, SCR_HGHT, "LearnOpenGL", NULL, NULL);
+        if (window == NULL)
+        {
+            std::cout << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+            bInitialized = false;
+            return;
+        }
+        glfwMakeContextCurrent(window);
+        glfwSetFramebufferSizeCallback(window, MyAppplcationTriangle::framebuffer_size_callback);
+
+        // glad: load all OpenGL function pointers
+        // ---------------------------------------
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        {
+            std::cout << "Failed to initialize GLAD" << std::endl;
+            bInitialized = false;
+            return;
+        }
+
+
+    }
+    void Load() override {
+        //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
+        //aTriangleMesh = DGE::MeshVertexNormalTextureCube().VAO;
+        /*aShaderPtr = Wolf::Renderer::Shader::GetShaderByID(Wolf::Renderer::Shader("plane.vs", "plane.fs").ID);
+        if (!aShaderPtr){
+            bInitialized = false;
+            return;
+        }
+        aShaderPtr->use();
+        aShaderPtr->setVec3("color", kGreen);*/
+
+        //Create a Shader.
+        const char *vertexShaderSource = "#version 330 core\n"
+                                         "layout (location = 0) in vec3 aPos;\n"
+                                         "void main()\n"
+                                         "{\n"
+                                         "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                         "}\0";
+        const char *fragmentShaderSource = "#version 330 core\n"
+                                           "out vec4 FragColor;\n"
+                                           "void main()\n"
+                                           "{\n"
+                                           "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                           "}\n\0";
+        unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+        glCompileShader(vertexShader);
+        // check for shader compile errors
+        int success;
+        char infoLog[512];
+        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        }
+        // fragment shader
+        unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+        glCompileShader(fragmentShader);
+        // check for shader compile errors
+        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        }
+        // link shaders
+        shaderProgram = glCreateProgram();
+        glAttachShader(shaderProgram, vertexShader);
+        glAttachShader(shaderProgram, fragmentShader);
+        glLinkProgram(shaderProgram);
+        // check for linking errors
+        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+        if (!success) {
+            glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        }
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
+
+        float vertices[] = {
+                -0.5f, -0.5f, 0.0f, // left
+                0.5f, -0.5f, 0.0f, // right
+                0.0f,  0.5f, 0.0f  // top
+        };
+
+        unsigned int VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+        glBindVertexArray(VAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+        // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+        glBindVertexArray(0);
+
+    }
+    void MainLoop() override {
+        //Process
+        //aWindowManagerRef.GrabWindow(windowID_0);
+        /*while (glfwWindowShouldClose((GLFWwindow*)windowID_0) == false) {
+            if (glfwGetKey((GLFWwindow*)windowID_0, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+                glfwSetWindowShouldClose((GLFWwindow*)windowID_0, true);
+            }
+
+            {
+                //aRenderManagerRef.SetBackgroundColor(DGE::fColor4(73.0f / 255.0f, 139.0f / 255.0f, 245.0f / 255.0f, 1.0f));
+                //Select Shader to Use and Configure it.
+                aShaderPtr->use();
+                {
+                        //FOR EACH MODEL UPDATEMODEL()
+                        glBindVertexArray(aTriangleMesh);
+                        glDrawArrays(GL_TRIANGLES, 0, 3);
+                }
+                aWindowManagerRef.UpdateWindow(windowID_0);
+            }
+            glfwPollEvents();
+        }*/
+        while (!glfwWindowShouldClose(window))
+        {
+            // input
+            // -----
+            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+
+            // render
+            // ------
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            // draw our first triangle
+            glUseProgram(shaderProgram);
+            glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+            // glBindVertexArray(0); // no need to unbind it every time
+
+            // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+            // -------------------------------------------------------------------------------
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
+
+    }
+    void ShutDown() override {
+        aWindowManagerRef.ShutdownWindow(windowID_0);
+    }
+
+};
 
 
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char **argv){
 
-    //Start the window Manager
-    auto windowManager = DGE::WindowManager::GetInstanceReference();
-    auto renderManager = DGE::RenderManager::GetInstanceReference();
-    //Configure Windows
-    auto startWindowLocation_0 = DGE::iLocation(100, 200);
-    auto startWindowLocation_1 = DGE::iLocation(200, 100);
-    auto windowSize_0 = DGE::iSize(640, 480);
-    auto windowSize_1 = DGE::iSize(480, 640);
-    auto windowID_0 = windowManager.SpawnWindow(startWindowLocation_0, windowSize_0, "I had the time of my life");
-    auto windowID_1 = windowManager.SpawnWindow(startWindowLocation_1, windowSize_1, "The time of my life, I had");
-
-    //Process
-    auto mWindow_1 = reinterpret_cast<GLFWwindow*>((void*)windowID_1);
-    while (glfwWindowShouldClose(mWindow_1) == false) {
-        if (glfwGetKey(mWindow_1, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(mWindow_1, true);
-
-        windowManager.GrabWindow(windowID_1);{
-            // Paint Background Fill Color & Update Window
-            renderManager.SetBackgroundColor(DGE::fColor4(0.25f, 0.25f, 0.25f, 1.0f));
-            windowManager.UpdateWindow(windowID_1);
-        }
-        windowManager.GrabWindow(windowID_0);{
-            renderManager.SetBackgroundColor(DGE::fColor4(73.0f/255.0f, 139.0f/255.0f, 245.0f/255.0f, 1.0f));
-            windowManager.UpdateWindow(windowID_0);
-        }
-
-        glfwPollEvents();
-    }
+    auto myApplication = MyAppplcationTriangle();
+    myApplication.Exec();
 
     //Shutdown
-    windowManager.ShutdownWindow(windowID_0);
-    windowManager.ShutdownWindow(windowID_1);
 
     auto& platform = DGE::PlatformGLFW::GetInstanceReference();
     platform.ShutDown();

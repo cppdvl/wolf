@@ -62,9 +62,10 @@ list (APPEND APPLICATION_HEADER_FOLDERS
     Wolf/Vendor/wolfengine/Vendor/glad/include
     Wolf/Vendor/wolfengine/Vendor/log/include
     #[[Wolf/Vendor/wolfengine/Vendor/gui
+    ]]
     Wolf/Vendor/stb/
     Wolf/Vendor/wolfengine/include
-    Wolf/Headers/
+    #[[Wolf/Headers/
     Wolf/Headers/Utils/  
     Wolf/Vendor/wolfengine/Vendor/glm/
     Wolf/Vendor/wolfengine/Vendor/glad/include
