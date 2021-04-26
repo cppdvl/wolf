@@ -487,7 +487,7 @@ namespace DGE{
             glBufferData(GL_ARRAY_BUFFER, sizeof(float) * mMeshData.size(), mMeshData.data(), GL_STATIC_DRAW);
 
             //position attribute
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
             glEnableVertexAttribArray(0);
             // normal attribute
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -773,6 +773,9 @@ protected:
     void Load() override {
         //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
         //aTriangleMesh = DGE::MeshVertexNormalTextureCube().VAO;
+        shaderProgram = Wolf::Renderer::Shader("plane.vs", "plane.fs").ID;
+        glUseProgram(shaderProgram);
+        glUniform3fv(glGetUniformLocation(shaderProgram, "color"), 1, &kGreen[0]);
         /*aShaderPtr = Wolf::Renderer::Shader::GetShaderByID(Wolf::Renderer::Shader("plane.vs", "plane.fs").ID);
         if (!aShaderPtr){
             bInitialized = false;
@@ -782,7 +785,7 @@ protected:
         aShaderPtr->setVec3("color", kGreen);*/
 
         //Create a Shader.
-        const char *vertexShaderSource = "#version 330 core\n"
+        /*const char *vertexShaderSource = "#version 330 core\n"
                                          "layout (location = 0) in vec3 aPos;\n"
                                          "void main()\n"
                                          "{\n"
@@ -829,13 +832,18 @@ protected:
             std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
         }
         glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+        glDeleteShader(fragmentShader);*/
 
-        float vertices[] = {
+        float vertices[] ={
+                -0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+                0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+                0.0f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.5f,  0.5f
+        };
+        /*float vertices[] = {
                 -0.5f, -0.5f, 0.0f, // left
                 0.5f, -0.5f, 0.0f, // right
                 0.0f,  0.5f, 0.0f  // top
-        };
+        };*/
 
         unsigned int VBO;
         glGenVertexArrays(1, &VAO);
@@ -846,8 +854,12 @@ protected:
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)3);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)6);
+        glEnableVertexAttribArray(2);
 
         // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
         glBindBuffer(GL_ARRAY_BUFFER, 0);
