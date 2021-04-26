@@ -773,16 +773,13 @@ protected:
     void Load() override {
         //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
         //aTriangleMesh = DGE::MeshVertexNormalTextureCube().VAO;
-        shaderProgram = Wolf::Renderer::Shader("plane.vs", "plane.fs").ID;
-        glUseProgram(shaderProgram);
-        glUniform3fv(glGetUniformLocation(shaderProgram, "color"), 1, &kGreen[0]);
-        /*aShaderPtr = Wolf::Renderer::Shader::GetShaderByID(Wolf::Renderer::Shader("plane.vs", "plane.fs").ID);
+        aShaderPtr = Wolf::Renderer::Shader::GetShaderByID(Wolf::Renderer::Shader("plane.vs", "plane.fs").ID);
         if (!aShaderPtr){
             bInitialized = false;
             return;
         }
         aShaderPtr->use();
-        aShaderPtr->setVec3("color", kGreen);*/
+        aShaderPtr->setVec3("color", kGreen);
 
         //Create a Shader.
         /*const char *vertexShaderSource = "#version 330 core\n"
@@ -902,7 +899,8 @@ protected:
             glClear(GL_COLOR_BUFFER_BIT);
 
             // draw our first triangle
-            glUseProgram(shaderProgram);
+            //glUseProgram(shaderProgram);
+            aShaderPtr->use();
             glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
             glDrawArrays(GL_TRIANGLES, 0, 3);
             // glBindVertexArray(0); // no need to unbind it every time
