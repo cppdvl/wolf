@@ -57,22 +57,22 @@ namespace DGE{
 
         virtual void Init() = 0;
         virtual void Shutdown() = 0;
+        virtual void SetBackgroundColor(DGE::fColor4 color4) = 0;
     };
 
     class RenderContextOpenGL : public DGE::Singleton<RenderContextOpenGL>, public IRenderContext {
     public:
         virtual void Init() override {
-            std::call_once(DGE::sRenderCtxtUniqueInitialization, [](){
-                if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-                    spdlog::critical("Glad opengl function pointers lib, {:s}:{:d} it's fucked.", __FILE__, __LINE__);
-                    std::exit(-1);
-                }
-                bIsStarted = true;
-            });
-            glEnable(GL_DEPTH_TEST);
+
+            //glEnable(GL_DEPTH_TEST);
         }
         virtual void Shutdown() override {
 
+        }
+
+        void SetBackgroundColor(DGE::fColor4 color4) override {
+            glClearColor(color4.x, color4.y, color4.z, color4.z);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
     };
     class WindowManager;
@@ -107,12 +107,12 @@ namespace DGE{
             mRenderContext->Init();
         }
     public:
-        void SetBackgroundColor(DGE::fColor3 color4){
-            // TODO: MOVE THE SPECIFIC FUNCTIONALITY OF THIS FUNCTION TO DGE::RenderContextOpenGL!!!!!!!!!!!
-            glClearColor(color4.x, color4.y, color4.z, color4.z);
-            glClear(GL_COLOR_BUFFER_BIT);
+        void SetBackgroundColor(DGE::fColor4 color4){
+            mRenderContext->SetBackgroundColor(color4);
         }
-
+        void SetBackgroundColor(DGE::fColor3 color3) {
+            mRenderContext->SetBackgroundColor(glm::vec4(color3, 1.0f));
+        }
     };
 
     /******************************************************************************************************************/
@@ -160,6 +160,10 @@ namespace DGE{
     };
     class PlatformGLFW : public DGE::Singleton<PlatformGLFW>, public IPlatform {
     private:
+
+        inline static GLFWwindow* firstWindowIDPTR{nullptr};
+        inline static std::once_flag firstWindowID_flag{};
+
     public:
         virtual void Init() override {
             std::call_once(sPlaftormUniqueInitialization, []()-> void {
@@ -177,15 +181,25 @@ namespace DGE{
         }
         virtual WindowID CreatePlatformWindow(int x, int y, int width, int height, const char* windowTitle) override {
             if (IPlatform::bIsStarted == false) Init();
-            auto ptrWindow = glfwCreateWindow(width, height, windowTitle, nullptr, nullptr);
+            auto ptrWindow = glfwCreateWindow(width, height, windowTitle, nullptr, (GLFWwindow *)firstWindowIDPTR);
             if (!ptrWindow){
                 spdlog::critical("{:s}:{:d} -- PlatformGLFW::CreatePlatformWindow() glfwCreateWindow failed", __FILE__, __LINE__);
                 return 0;
             }
-
-            glfwSetWindowPos(ptrWindow, x, y);
             auto windowID = (IPlatform::WindowID)ptrWindow;
+            SetActiveWindow(windowID);
+            std::call_once(DGE::sRenderCtxtUniqueInitialization, [](){
+                bIsStarted = true;
+            });
+            glfwSetWindowPos(ptrWindow, x, y);
             spdlog::info("{:s}:{:d} -- PlatformGLFW::CreatePlatformWindow() Window Title and MemoryID => '{:s}' : [@0x{:x}]",  __FILE__, __LINE__, windowTitle, (IPlatform::WindowID)ptrWindow);
+            if (firstWindowIDPTR)
+            {
+                spdlog::info("{:s}:{:d} -- PlatformGLFW::CreatePlatformWindow() Sharing Context from Window : [@0x{:x}]", __FILE__, __LINE__, (unsigned long long)firstWindowIDPTR);
+            }
+            std::call_once(firstWindowID_flag,[&](){
+                firstWindowIDPTR = ptrWindow;
+            });
             return windowID;
         }
         virtual WindowID DestroyPlatformWindow(WindowID wID) override {
@@ -197,8 +211,12 @@ namespace DGE{
             glfwSetFramebufferSizeCallback(reinterpret_cast<GLFWwindow*>((void*)wID), (GLFWframebuffersizefun)windowResizeCb);
         }
         virtual void SetActiveWindow(WindowID wID) override {
-            auto ptrWindow = reinterpret_cast<GLFWwindow*>((void*)wID);
-            glfwMakeContextCurrent(ptrWindow);
+
+            glfwMakeContextCurrent((GLFWwindow*)wID);
+            if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+                spdlog::critical("Glad opengl function pointers lib, {:s}:{:d} it's fucked.", __FILE__, __LINE__);
+                std::exit(-1);
+            }
         }
         virtual void RefreshWindow(WindowID wID) override {
             glfwSwapBuffers((GLFWwindow*)wID);
@@ -246,13 +264,12 @@ namespace DGE{
         IPlatform::WindowID SpawnWindow(DGE::iLocation2& windowLocation, DGE::iSize& windowSize, std::string windowTitle, void(*frameBufferResizeCb)(void*, int, int) = DGE::sWindowResizeCallback){
 
             auto windowID = mPlatform->CreatePlatformWindow(windowLocation.x, windowLocation.y, windowSize.x, windowSize.y, windowTitle.c_str());
+            mActiveWindow = windowID;
             if (!windowID) {
                 spdlog::critical ("{:s}:{:d} -- WindowManager couldn't Spawn the Window....", __FILE__, __LINE__);
                 std::exit(-1);
             }
             mPlatform->InstallWindowResizeCallback(windowID, frameBufferResizeCb);
-            mPlatform->SetActiveWindow(windowID);
-            mActiveWindow = windowID;
 
             auto renderManager = DGE::RenderManager::GetInstanceReference();
             renderManager._SpawnRenderContext();
@@ -631,7 +648,8 @@ class MyApplicationCube : public DGE::Application {
     const DGE::fLocation kLightPosition {3.0f, 3.0f, 3.0f};
     bool bUsePhongShading {true};
     glm::mat4 aBoxModel {glm::mat4(1.0f)};
-    DGE::IPlatform::WindowID windowID_0, windowID_1;
+    std::vector<DGE::IPlatform::WindowID> vWindowID{};
+    std::vector<GLFWwindow*> vWindowIDPtr{};
 protected:
     void Init() override {
 
@@ -639,8 +657,11 @@ protected:
         auto startWindowLocation_1 = DGE::iLocation2(200, 100);
         auto windowSize_0 = DGE::iSize(640, 480);
         auto windowSize_1 = DGE::iSize(480, 640);
-        windowID_0 = aWindowManagerRef.SpawnWindow(startWindowLocation_0, windowSize_0, "I had the time of my life");
-        windowID_1 = aWindowManagerRef.SpawnWindow(startWindowLocation_1, windowSize_1, "The time of my life, I had");
+        vWindowID.push_back(aWindowManagerRef.SpawnWindow(startWindowLocation_0, windowSize_0, "I had the time of my life"));
+        vWindowID.push_back(aWindowManagerRef.SpawnWindow(startWindowLocation_1, windowSize_1, "The time of my life, I had"));
+        std::for_each(vWindowID.begin(), vWindowID.end(), [&](auto& windowID){
+            vWindowIDPtr.push_back((GLFWwindow*)windowID);
+        });
         bInitialized = true;
 
     }
@@ -648,7 +669,7 @@ protected:
 
         //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
         aCubeMesh = DGE::MeshVertexNormalTextureCube().VAO;
-        aCamera = static_cast<DGE::ICamera>(DGE::Camera_MouseKeyboard(DGE::fLocation(2.0f, 2.0f, 3.0f)));
+        aCamera = static_cast<DGE::ICamera>(DGE::Camera_MouseKeyboard(DGE::fLocation(2.0f, 2.0f, 15.0f)));
 
         //Create a Shader.
         aShaderPtr = Wolf::Renderer::Shader::GetShaderByID(Wolf::Renderer::Shader("plain.vs", "plain.fs").ID);
@@ -656,6 +677,7 @@ protected:
             bInitialized = false;
             return;
         }
+        aShaderPtr->use();
         aShaderPtr->setBool("blinn", bUsePhongShading);
         aShaderPtr->setVec3("lightPos", kLightPosition);
         aShaderPtr->setVec3("color", kGreen);
@@ -664,17 +686,22 @@ protected:
     }
     void MainLoop() override {
         //Process
-        auto mWindow_1 = reinterpret_cast<GLFWwindow*>((void*)windowID_1);
-        while (glfwWindowShouldClose(mWindow_1) == false) {
-            if (glfwGetKey(mWindow_1, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-                glfwSetWindowShouldClose(mWindow_1, true);
+        //auto& refPtr1 = vWindowIDPtr[1];
+        auto& refPtr0 = vWindowIDPtr[0];
+        auto& ref_ID1 = vWindowID[1];
+        auto& ref_ID0 = vWindowID[0];
 
-            aWindowManagerRef.GrabWindow(windowID_1);{
+        while (glfwWindowShouldClose(refPtr0) == false) {
+
+            if (glfwGetKey(refPtr0, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(refPtr0, true);
+
+            aWindowManagerRef.GrabWindow(ref_ID1);{
                 // Paint Background Fill Color & Update Window
                 aRenderManagerRef.SetBackgroundColor(DGE::fColor4(0.25f, 0.25f, 0.25f, 1.0f));
-                aWindowManagerRef.UpdateWindow(windowID_1);
+                aWindowManagerRef.UpdateWindow(ref_ID1);
             }
-            aWindowManagerRef.GrabWindow(windowID_0);{
+            aWindowManagerRef.GrabWindow(ref_ID0);{
+                glfwMakeContextCurrent(refPtr0);
                 aRenderManagerRef.SetBackgroundColor(DGE::fColor4(73.0f / 255.0f, 139.0f / 255.0f, 245.0f / 255.0f, 1.0f));
                 //Select Shader to Use and Configure it.
                 aShaderPtr->use();
@@ -689,20 +716,21 @@ protected:
                         //FOR EACH MODEL UPDATEMODEL()
                         glBindVertexArray(aCubeMesh);
                         //UPDATE MODEL()
-                        aShaderPtr->setMat4("model", aBoxModel);
+                        //aShaderPtr->setMat4("model", aBoxModel);
                         glDrawArrays(GL_TRIANGLES, 0, 36);
                     }
                 }
                 aShaderPtr->setVec3("viewPos", aCamera.Position);
-                aWindowManagerRef.UpdateWindow(windowID_0);
+                aWindowManagerRef.UpdateWindow(ref_ID0);
             }
             glfwPollEvents();
         }
 
     }
     void ShutDown() override {
-        aWindowManagerRef.ShutdownWindow(windowID_0);
-        aWindowManagerRef.ShutdownWindow(windowID_1);
+        std::for_each(vWindowID.begin(), vWindowID.end(), [&](auto& windowID){
+            aWindowManagerRef.ShutdownWindow(windowID);
+        });
     }
 
 
@@ -714,66 +742,24 @@ class MyAppplcationTriangle : public DGE::Application{
     unsigned int SCR_WIDT{800};
     unsigned int SCR_HGHT{600};
     unsigned int aTriangleMesh{};
-    const DGE::fLocation kViewerPoistion {0.0f, 0.0f, 3.0f};
     Wolf::Renderer::Shader* aShaderPtr{nullptr};
     const DGE::fColor3 kGreen{0.203f, 0.921f, 0.658f};
-    const DGE::fLocation kLightPosition {3.0f, 3.0f, 3.0f};
-    bool bUsePhongShading {false};
     DGE::IPlatform::WindowID windowID_0;
 
     GLFWwindow*window;
-    unsigned int shaderProgram;
 
 protected:
-    static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-    {
-        // make sure the viewport matches the new window dimensions; note that width and
-        // height will be significantly larger than specified on retina displays.
-        glViewport(0, 0, width, height);
-    }
     void Init() override{
 
-        /*auto startWindowLocation_0 = DGE::iLocation2(100, 200);
+        auto startWindowLocation_0 = DGE::iLocation2(100, 200);
         auto windowSize_0 = DGE::iSize(SCR_WIDT, SCR_HGHT);
-        windowID_0 = aWindowManagerRef.SpawnWindow(startWindowLocation_0, windowSize_0, "My Triangle Window 0");*/
+        windowID_0 = aWindowManagerRef.SpawnWindow(startWindowLocation_0, windowSize_0, "My Triangle Window 0");
+        window = (GLFWwindow*)windowID_0;
         bInitialized = true;
-        // glfw: initialize and configure
-        // ------------------------------
-        glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-        // glfw window creation
-        // --------------------
-        window = glfwCreateWindow(SCR_WIDT, SCR_HGHT, "LearnOpenGL", NULL, NULL);
-        if (window == NULL)
-        {
-            std::cout << "Failed to create GLFW window" << std::endl;
-            glfwTerminate();
-            bInitialized = false;
-            return;
-        }
-        glfwMakeContextCurrent(window);
-        glfwSetFramebufferSizeCallback(window, MyAppplcationTriangle::framebuffer_size_callback);
-
-        // glad: load all OpenGL function pointers
-        // ---------------------------------------
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        {
-            std::cout << "Failed to initialize GLAD" << std::endl;
-            bInitialized = false;
-            return;
-        }
-
-
     }
     void Load() override {
-        //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
+
+        //Create a Scene with a Triangle and a Camera.
         //Create a Triangle Mesh.
         aTriangleMesh = DGE::MeshVertexNormalTextureTriangle().VAO;
         //Create a Shader.
@@ -789,46 +775,29 @@ protected:
     }
     void MainLoop() override {
         //Process
-        //aWindowManagerRef.GrabWindow(windowID_0);
-        /*while (glfwWindowShouldClose((GLFWwindow*)windowID_0) == false) {
-            if (glfwGetKey((GLFWwindow*)windowID_0, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-                glfwSetWindowShouldClose((GLFWwindow*)windowID_0, true);
-            }
-
-            {
-                //aRenderManagerRef.SetBackgroundColor(DGE::fColor4(73.0f / 255.0f, 139.0f / 255.0f, 245.0f / 255.0f, 1.0f));
-                //Select Shader to Use and Configure it.
-                aShaderPtr->use();
-                {
-                        //FOR EACH MODEL UPDATEMODEL()
-                        glBindVertexArray(aTriangleMesh);
-                        glDrawArrays(GL_TRIANGLES, 0, 3);
-                }
-                aWindowManagerRef.UpdateWindow(windowID_0);
-            }
-            glfwPollEvents();
-        }*/
         while (!glfwWindowShouldClose(window))
         {
-            // input
-            // -----
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-            // render
-            // ------
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            //Draw the Window 0
+            aWindowManagerRef.GrabWindow(windowID_0);{
 
-            // draw our first triangle
-            //glUseProgram(shaderProgram);
-            aShaderPtr->use();
-            glBindVertexArray(aTriangleMesh); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            // glBindVertexArray(0); // no need to unbind it every time
+                //Clear the Background
+                aRenderManagerRef.SetBackgroundColor(DGE::fColor4(73.0f / 255.0f, 139.0f / 255.0f, 245.0f / 255.0f, 1.0f));
 
-            // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-            // -------------------------------------------------------------------------------
-            glfwSwapBuffers(window);
+                //Activate the Shader.
+                aShaderPtr->use();
+
+                //Bind Mesh to Shader.
+                glBindVertexArray(aTriangleMesh);
+
+                //Flush to Screen.
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            } aWindowManagerRef.UpdateWindow(windowID_0);
+
+
+
             glfwPollEvents();
         }
 
