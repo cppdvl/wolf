@@ -29,53 +29,16 @@ extern "C"{
 #include "dge/camera.h"
 #include "dge/mesh.h"
 #include "dge/texture.h"
-
+#include "dge/inputmanager.h"
+#include "dge/platform/platform.h"
 
 namespace DGE{
     /******************************************************************************************************************/
 
+    
+
+
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-
-    class IEventManager {
-    protected:
-        std::map<DGE::IPlatform::WindowID, std::once_flag> mWId_OF{};
-    public:
-        virtual void RegisterWindowID(DGE::IPlatform::WindowID& wid) = 0;
-        virtual void UpdateEvents(DGE::IPlatform::WindowID&) = 0; 
-
-    };
-
-    class GLFWEventManager : public DGE::Singleton<GLFWEventManager>, public IEventManager {
-
-        inline static std::once_flag sKeyCallbackFlag{}; 
-        
-        static void sKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-        {
-            if (key == GLFW_KEY_E && action == GLFW_PRESS) std::cout << "!!!E!!!!" << std::endl;
-        }
-    public:
-        void RegisterWindowID(DGE::IPlatform::WindowID&wid) override  {
-            glfwSetKeyCallback((GLFWwindow*)wid, GLFWEventManager::sKeyCallback);
-        }
-        void UpdateEvents(DGE::IPlatform::WindowID&) override {
-
-            std::call_once(sKeyCallbackFlag, []()->void{
-            });
-        }
-
-    };
-
-    class Event : public GTech::Signal<Event> {
-    public:
-        enum class KeyAction {
-            PRESSING,
-            HOLDING,
-            RELEASING
-        };
-
-
-        
-    };
 
 
     class Application {
@@ -83,16 +46,25 @@ namespace DGE{
 
     protected:
         std::string mDescription{};
-
+        DGE::IPlatform::WindowID mAppWindow;
         DGE::WindowManager& aWindowManagerRef{DGE::WindowManager::GetInstanceReference()};
         DGE::RenderManager& aRenderManagerRef{DGE::RenderManager::GetInstanceReference()};
+        DGE::InputManager& anInputManagerRef{DGE::InputManager::GetInstanceReference()};
 
         bool bInitialized {false};
+        bool bRunning{true};
         virtual void Init() = 0; //Initialize Windows, Platform, Rendering etc.
         virtual void Load() = 0; //Load Assets, Create Levels, Menus, Debug Dialogues etc.
         virtual void MainLoop() = 0;  // BeforeStart(), GetInput(), Simulate(), Render(), AfterFinish().
         virtual void ShutDown() = 0;  // Unload Assets, Levels, Dialogues etc.
         virtual const std::string& GetDescription(){ return mDescription; }
+
+
+        inline virtual void UpdateEvents(){
+            glfwPollEvents();
+        }
+
+
     public:
         void Exec(){
             Init();
@@ -111,7 +83,6 @@ class MyApplicationCube : public DGE::Application {
     DGE::iSize mScreenSize{800,600};
     float mAspectRatio{(float)mScreenSize.x/(float)mScreenSize.y};
     float mFov{60.0f};
-    DGE::IPlatform::WindowID mAppWindow;
 
     unsigned int aCubeMesh{};
     glm::mat4 aBoxModel{glm::mat4{1.0f}};
@@ -152,13 +123,16 @@ protected:
         aShaderPtr->setVec3("color", DGE::COLOR::kGreen);
 
         spdlog::info("{:s}{:d} Finished loding the scene", __FILE__, __LINE__);
+
     }
+
+
     void MainLoop() override {
         //Process
         auto radius = glm::length(mCamera.mPosition);
-        while (glfwWindowShouldClose((GLFWwindow*)mAppWindow) == false) {
+        while (aWindowManagerRef.IsWindowClosing(mAppWindow) == false) {
 
-            if (glfwGetKey((GLFWwindow*)mAppWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose((GLFWwindow*)mAppWindow, true);
+            if (anInputManagerRef.GetKeyState(mAppWindow, DGE::Keys::K_ESC) == DGE::KeyState::STATE_DOWN) aWindowManagerRef.CloseWindow(mAppWindow);
 
             aWindowManagerRef.GrabWindow(mAppWindow);
             // Paint Background Fill Color & Update Window
@@ -168,7 +142,7 @@ protected:
             aShaderPtr->use();
             //UPDATECAMERA()
             auto timeValue = glfwGetTime();
-            mCamera.SetPositionAndTarget(
+            mCamera.SetPositionAndTargetAndThenUpdate(
                 glm::vec3{
                     radius*cos(timeValue + glm::pi<float>() / 4.0f),
                     3.0f * sin(timeValue),
@@ -185,12 +159,11 @@ protected:
             glDrawArrays(GL_TRIANGLES, 0, 36);
             aWindowManagerRef.UpdateWindow(mAppWindow);
 
-            glfwPollEvents();
+            UpdateEvents();
         }
 
     }
     void ShutDown() override {
-
         aWindowManagerRef.ShutdownWindow(mAppWindow);
     }
 
@@ -213,7 +186,7 @@ public:
         void Update(){
             mTransform = glm::lookAt(mPosition, mPosition + mFront, mUp);
         }
-        void SetPositionAndTarget(glm::vec3 position, glm::vec3 lookat){
+        void SetPositionAndTargetAndThenUpdate(glm::vec3 position, glm::vec3 lookat){
             mPosition = position;
 
             mFront = lookat - position;
@@ -225,7 +198,7 @@ public:
             Update();
         }
         Camera(glm::vec3 position, glm::vec3 lookat){
-            SetPositionAndTarget(position, lookat);
+            SetPositionAndTargetAndThenUpdate(position, lookat);
         }
         Camera() { Update(); }
     };
