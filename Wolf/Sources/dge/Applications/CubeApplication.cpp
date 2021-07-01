@@ -48,6 +48,9 @@ void CubeApplication::Load()
     //Create a Scene with a Mesh-Texture-Cube mesh, and a Camera.
     aCubeMesh = DGE::MeshVertexNormalTextureCube().VAO;
 
+
+
+
     //Create Shader.
     aShaderPtr = std::make_unique<Wolf::Renderer::Shader>("plain.vs", "plain.fs");
     if (!aShaderPtr)
@@ -60,7 +63,6 @@ void CubeApplication::Load()
     aShaderPtr->setMat4("projection", mProjection);
     aShaderPtr->setBool("blinn", bUsePhongShading);
     aShaderPtr->setVec3("lightPos", kLightPosition);
-    aShaderPtr->setVec3("color", DGE::COLOR::kGreen);
 
     spdlog::info("{:s}{:d} Finished loding the scene", __FILE__, __LINE__);
 
@@ -92,9 +94,17 @@ void CubeApplication::MainLoop()
     aShaderPtr->setVec3("viewPos", mCameraLocation);
     aShaderPtr->setMat4("view", mCameraTrans);
 
+
     glBindVertexArray(aCubeMesh);
-    aShaderPtr->setMat4("model", aBoxModel);
-    glDrawArrays(GL_TRIANGLES,0,36);
+
+    /* Draw as many boxes there are in the model */
+    for (auto index = 0; index < aBoxModel.size(); ++index)
+    {
+        aShaderPtr->setVec3("color", aBoxColor[index]);
+        aShaderPtr->setMat4("model", aBoxModel[index]);
+        glDrawArrays(GL_TRIANGLES,0,36);
+    }
+
     aWindowManagerRef.UpdateWindow(mAppWindow);
 
 }

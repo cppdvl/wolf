@@ -29,8 +29,22 @@ class CubeApplication : public DGE::Application
     float mFov{60.0f};
 
     unsigned int aCubeMesh{};
-    glm::mat4 aBoxModel{glm::mat4{1.0f}};
+    unsigned int anotherCubeMesh{};
 
+    std::vector<glm::mat4 > aBoxModel{
+            glm::mat4{1.0f},
+            glm::translate(glm::mat4{1.0f}, glm::vec3{-1.2f, 0.0f, 0.0f}),
+            glm::translate(glm::mat4{1.0f}, glm::vec3{1.2f, 0.0f, 0.0f}),
+            glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, 1.2f, 0.0f}),
+            glm::translate(glm::mat4{1.0f}, glm::vec3{0.0f, -1.2f, 0.0f})
+    };
+    std::vector<DGE::fColor3> aBoxColor{
+        DGE::COLOR::kGreen,
+        DGE::COLOR::kBlue,
+        DGE::COLOR::Scarlet,
+        DGE::COLOR::Orange,
+        DGE::COLOR::BrightGold
+    };
     std::unique_ptr<Wolf::Renderer::Shader> aShaderPtr{nullptr};
 
     const DGE::fLocation kLightPosition {3.0f, 3.0f, -3.0f};
