@@ -1,3 +1,4 @@
+#pragma once
 namespace DGE{
         template <typename T>
     class Singleton{

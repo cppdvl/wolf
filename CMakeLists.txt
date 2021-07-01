@@ -53,8 +53,8 @@ foreach(FULL_SOURCES_LIST_ELEM IN LISTS FULL_SOURCES_LIST)
     message(STATUS "Resource: ${FULL_SOURCES_LIST_ELEM}")
 endforeach()
 
-add_executable(${PROJECT_NAME})
-target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST})
+add_executable(${PROJECT_NAME} Wolf/Sources/dge/Applications/TriangleApplication.cpp Wolf/Sources/dge/Applications/TriangleApplication.h Wolf/Sources/dge/Applications/CubeApplication.cpp Wolf/Sources/dge/Applications/CubeApplication.h Wolf/Sources/dge/Applications/FPSDemoApplication.cpp Wolf/Sources/dge/Applications/FPSDemoApplication.h)
+target_sources(${PROJECT_NAME} PRIVATE ${FULL_SOURCES_LIST} )
 list (APPEND APPLICATION_HEADER_FOLDERS 
     #[[Wolf/Headers/
     Wolf/Headers/Utils/]]  
@@ -66,6 +66,7 @@ list (APPEND APPLICATION_HEADER_FOLDERS
     ]]
     Wolf/Vendor/stb/
     Wolf/Vendor/wolfengine/include
+    Wolf/Vendor/cxxopts-2.2.1/include
     #[[Wolf/Headers/
     Wolf/Headers/Utils/  
     Wolf/Vendor/wolfengine/Vendor/glm/
