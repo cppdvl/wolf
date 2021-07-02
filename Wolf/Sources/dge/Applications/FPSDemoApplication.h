@@ -21,30 +21,68 @@
 #include "../inputmanager.h"
 #include "../application.h"
 
-constexpr float ScreenWidthf = 800.0f;
-constexpr float ScreenHeightf = 600.0f;
 constexpr int ScreenWidth = 800;
 constexpr int ScreenHeight = 600;
+
+namespace DGE {
+    class ScreenProjection {
+
+        float& mFov;
+        int& mScreenWidth;
+        int& mScreenHeight;
+        int& mZNear;
+        int& mZFar;
+
+        glm::mat4 mProjection{};
+    public:
+        void Update(){
+            mProjection = glm::perspective(glm::radians(mFov), ((float)mScreenWidth / (float)mScreenHeight), mZear, 100.0f);
+        }
+        glm::mat4& GetProjection(){
+            return mProjection;
+        }
+    };
+}
 
 class FPSDemoApplication : public DGE::Application{
 
 
-    inline static DGE::iSize mScreenSize{ScreenWidth, ScreenHeight};
-    inline static float mAspectRatio { ScreenWidthf / ScreenHeightf };
+    DGE::iSize mScreenSize{ScreenWidth, ScreenHeight};
+    float mAspectRatio { (float)mScreenSize.x / (float)mScreenSize.y };
+    float mFov{60.0f};
+    glm::mat4 mProjection = glm::perspective(glm::radians(mFov), mAspectRatio, 0.1f, 100.0f);
+
+    std::vector<unsigned int> blocks{};
+    std::vector<std::string> levelmap{
+        ".............D.............",
+        ".                         .",
+        ".   ......       ......   .",
+        ".   .    .       .    .   .",
+        ".   .    D       D    .   .",
+        ".   .    .       .    .   .",
+        ".   ..  .....D.....  ..   .",
+        ".   .                 .   .",
+        ".   ..               ..   .",
+        ".    ....D.......D....    .",
+        ".     ..           ..     .",
+        ".      ..         ..      .",
+        ".       .....D.....       .",
+        ".                         .",
+        ".                         .",
+        "........           ........",
+        ".      .           .      .",
+        ".      .           .      .",
+        ".      |           .      .",
+        ".      .     A     .      .",
+        ".      .           |      .",
+        "..........................."};
 
 
-    float mFov {60.0f};
+    std::unique_ptr<Wolf::Renderer::Shader> levelShader{nullptr};
 
-    unsigned int aCubeMesh{};
-    glm::mat4 aBoxModel{glm::mat4 {1.0f}};
-
-
-    std::unique_ptr<Wolf::Renderer::Shader> spShader{nullptr};
     DGE::fLocation lightPosition {3.0f, 3.0f, -3.0f};
-
     bool bUsePhongShading{true};
 
-    glm::mat4 mProjection = glm::perspective(glm::radians(mFov), mAspectRatio, 0.1f, 100.0f);
 
 
     GTech::Signal<> EscapePressed;

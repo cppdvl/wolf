@@ -1,3 +1,5 @@
 #!/bin/bash
 alias smlcmp='make -j && cd Wolf && ./Wolf && cd ..'
-alias fllcmp='git clean -fdx && cmake .. && smlcmp'
+alias release_cmake='cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang.exe -DCMAKE_CXX_COMPILER=clang++.exe -G "MinGW Makefiles"'
+alias fllcmp='git clean -fdx && release_cmake && smlcmp'
+alias wolf='mingw32-make.exe -j && cd Wolf && ./Wolf.exe && cd ..'

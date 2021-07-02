@@ -35,7 +35,7 @@ void FPSDemoApplication::MainLoop()
     aRenderManagerRef.SetBackgroundColor(DGE::COLOR::BlueViolet);
 
     //InvokeShader
-    spShader->use();
+    levelShader->use();
 
 
 

@@ -7,6 +7,13 @@ namespace DGE {
     public:
         unsigned int VAO;
     };
+    class MeshVertexNormalTexturePlane : public Mesh {
+        std::vector <float> mMeshData {
+            -0.5f,  0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+             0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f
+        };
+    };
     class MeshVertexNormalTextureTriangle : public Mesh {
         std::vector <float> mMeshData {
             -0.5f, -0.5f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
